@@ -1,0 +1,11 @@
+{
+    "applications": {
+        "Passions": {
+            "applicationId": "ymoWy7LcvcSg1tEGehR46hgLAEGP2mR3wyePOsQd", 
+            "masterKey": "3ZYFrBWkSWjbxkN7korFuRp1JqvdPzroDzjFp2E5"
+        }, 
+        "_default": {
+            "link": "Passions"
+        }
+    }
+}
