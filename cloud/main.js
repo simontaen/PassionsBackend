@@ -1,6 +1,9 @@
+'use strict';
 
-// Use Parse.Cloud.define to define as many cloud functions as you want.
-// For example:
-Parse.Cloud.define("hello", function(request, response) {
-  response.success("Hello world!");
-});
+var config = require('cloud/config.js'),
+  routes = require('cloud/routes.js');
+
+// init routes with config
+routes(config);
+
+// burgerculture reads mondelPaths from filesystem, but I think we won't need this. (as the artist resources are loaded in routes.js)
