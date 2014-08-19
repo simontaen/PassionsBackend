@@ -11,8 +11,7 @@ module.exports = function(config) {
   // 'artists' resource
   var artistsResource = config.apiDelim + 'artists';
 
-  // Use Parse.Cloud.define to define as many cloud functions as you want.
-  Parse.Cloud.define(api + artistsResource, artists.hello);
+  Parse.Cloud.define(api + artistsResource, artists.handleArtists);
 
   // app.post(api + artistsResource, artists.add); // post on missing, post on existing
   // app.get(api + artistsResource + '/:id', artists.findById); // find existing, find missing
