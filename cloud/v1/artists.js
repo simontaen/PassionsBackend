@@ -1,5 +1,11 @@
 'use strict';
 
+Parse.Cloud.beforeSave("Artist", function(req, res) {
+  console.log("Saving " + req.object.get("name"))
+  res.success();
+});
+
+
 // Handle 'artists' resource
 exports.handleArtists = function(req, res) {
 

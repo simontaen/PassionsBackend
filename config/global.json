@@ -4,8 +4,12 @@
             "applicationId": "ymoWy7LcvcSg1tEGehR46hgLAEGP2mR3wyePOsQd", 
             "masterKey": "3ZYFrBWkSWjbxkN7korFuRp1JqvdPzroDzjFp2E5"
         }, 
+        "PassionsDev": {
+            "applicationId": "Vu83BHNIovSX8QnltXZYFL9I7xWEZzsjzKWIasQy", 
+            "masterKey": "YtT1DgidlU7lWNxvtJCbdW5yc8J1UVOwXNIrTMhe"
+        }, 
         "_default": {
-            "link": "Passions"
+            "link": "PassionsDev"
         }
     }, 
     "global": {
