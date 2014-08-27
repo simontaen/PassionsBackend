@@ -4,34 +4,6 @@ var _ = require("underscore"),
   lfm = require('cloud/lastFm.js'),
   spotify = require('cloud/spotify.js');
 
-// save an array of album names to the artists "album" property
-function processSpotifyAlbums(albums, parseArtist) {
-  var albumsMap = _.groupBy(albums, 'id');
-  parseArtist.set("albums", albumsMap);
-};
-
-// save selected artist properties
-// query for ONE album of the artist, save the total number of albums
-function processArtist(artist, parseArtist, cb) {
-  var artistId = artist.id;
-  spotify.getAlbumsForArtist(artistId, {
-    limit: 1
-  },
-
-  function(httpResponse) {
-    //processSpotifyAlbums(httpResponse.data.items, parseArtist);
-    parseArtist.set("totalAlbums", httpResponse.data.total);
-    cb && cb();
-  },
-
-  function(httpResponse) {
-    console.log(httpResponse.text);
-    cb && cb("spotify.getAlbumsForArtist failed!");
-  });
-
-  parseArtist.set("spotifyId", artistId);
-};
-
 module.exports = function(config, lfm) {
   // 3 seconds timeout
 
@@ -44,7 +16,7 @@ module.exports = function(config, lfm) {
     },
 
     function(httpResponse) {
-      processArtist(httpResponse.data.artists.items[0], req.object, function(error) {
+      spotify.processArtist(httpResponse.data.artists.items[0], req.object, function(error) {
         error ? res.error(error) : res.success();
       });
     },
