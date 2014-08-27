@@ -5,22 +5,22 @@ var _ = require("underscore"),
   spotify = require('cloud/spotify.js');
 
 // save an array of album names to the artists "album" property
-function processSpotifyAlbums(albums, artistObj) {
+function processSpotifyAlbums(albums, parseArtist) {
   var albumsMap = _.groupBy(albums, 'id');
-  artistObj.set("albums", albumsMap);
+  parseArtist.set("albums", albumsMap);
 };
 
 // save selected artist properties
 // query for ONE album of the artist, save the total number of albums
-function processArtist(artist, artistObj, cb) {
+function processArtist(artist, parseArtist, cb) {
   var artistId = artist.id;
   spotify.getAlbumsForArtist(artistId, {
     limit: 1
   },
 
   function(httpResponse) {
-    //processSpotifyAlbums(httpResponse.data.items, artistObj);
-    artistObj.set("totalAlbums", httpResponse.data.total);
+    //processSpotifyAlbums(httpResponse.data.items, parseArtist);
+    parseArtist.set("totalAlbums", httpResponse.data.total);
     cb && cb();
   },
 
@@ -29,7 +29,7 @@ function processArtist(artist, artistObj, cb) {
     cb && cb("spotify.getAlbumsForArtist failed!");
   });
 
-  artistObj.set("spotifyId", artistId);
+  parseArtist.set("spotifyId", artistId);
 };
 
 module.exports = function(config, lfm) {
@@ -58,14 +58,14 @@ module.exports = function(config, lfm) {
 
   /*
   // save an array of album names to the artists "album" property
-  function processLfmAlbums(albums, artistObj) {
+  function processLfmAlbums(albums, parseArtist) {
     var albumsMap = _.groupBy(albums, 'name');
-    artistObj.set("albums", albumsMap);
+    parseArtist.set("albums", albumsMap);
     // var albumNames = [];
     // _.each(albums, function(album) {
     //   albumNames.push(album.name);
     // });
-    // artistObj.set("albums", albumNames);
+    // parseArtist.set("albums", albumNames);
   };
 
   Parse.Cloud.beforeSave("Artist2", function(req, res) {
