@@ -4,22 +4,16 @@
 
   function wrappedHttpRequest(endpoint, params, success, failure) {
     var myUrl = endpoint ? "https://api.spotify.com/v1/" + endpoint + "/" : _url;
-    if (!params.limit) {
-      params.limit = "50";
-    }
+    params.limit = params.limit || "50";
 
     return Parse.Cloud.httpRequest({
       url: myUrl,
       params: params,
       success: function(httpResponse) {
-        if (success) {
-          success(httpResponse);
-        }
+        success && success(httpResponse);
       },
       error: function(httpResponse) {
-        if (failure) {
-          failure(httpResponse);
-        }
+        failure && failure(httpResponse);
       }
     });
 

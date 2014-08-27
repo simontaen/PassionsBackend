@@ -29,58 +29,59 @@ function processArtist(artist, artistObj, res) {
   artistObj.set("spotifyId", artistId);
 
   // fetch all albums
-  spotify.findAlbumsForArtist(artistId, {},
+  spotify.findAlbumsForArtist(artistId, {
+    limit: 1
+  },
 
   function(httpResponse) {
     // process fetched albums
     processSpotifyAlbums(httpResponse.data.items, artistObj);
+    artistObj.set("totalAlbums", httpResponse.data.total);
     res.success();
   },
 
   function(httpResponse) {
     console.log(httpResponse.text);
-    res.error("Spotify call failed!");
+    res.error("spotify.findAlbumsForArtist failed!");
   });
 };
 
 module.exports = function(config, lfm) {
   // 3 seconds timeout
 
+  // search for the artist
+  // query for all albums of the artist and save them
   Parse.Cloud.beforeSave("Artist", function(req, res) {
-    var name = req.object.get("name");
     spotify.searchForArtist({
-      q: name,
+      q: req.object.get("name"),
       limit: 1
     },
 
     function(httpResponse) {
       processArtist(httpResponse.data.artists.items[0], req.object, res);
-      // cleanup name, this creates a duplicate entry for every falsely names artist
-      // req.object.set("name", httpResponse.data.topalbums["@attr"].artist);
     },
 
     function(httpResponse) {
       console.log(httpResponse.text);
-      res.error("Spotify call failed!");
+      res.error("spotify.searchForArtist failed!");
     });
   });
 
   Parse.Cloud.beforeSave("Artist2", function(req, res) {
-    var name = req.object.get("name");
     lfm.findAlbumsForArtist({
-      artist: name
+      artist: req.object.get("name")
     },
 
     function(httpResponse) {
       processAlbums(httpResponse.data.topalbums.album, req.object);
-      // cleanup name, this creates a duplicate entry for every falsely names artist
+      // cleanup name: this creates a duplicate entry for every falsely names artist
       // req.object.set("name", httpResponse.data.topalbums["@attr"].artist);
       res.success();
     },
 
     function(httpResponse) {
       console.log(httpResponse.text);
-      res.error("LFM call findAlbumsForArtist failed");
+      res.error("lfm.findAlbumsForArtist failed");
     });
   });
 
