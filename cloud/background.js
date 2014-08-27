@@ -8,43 +8,65 @@ module.exports = function(config) {
   // 15 minute timeout
 
   Parse.Cloud.job("findNewAlbums", function(req, status) {
-    // Query for all artists
-    var query = new Parse.Query("Artist");
+    var counter = 0, //
+      query = new Parse.Query("Artist");
     // Artist should be favorited by some users
     query.exists("favByUsers")
 
-    query.each(function(artist) {
-      // for each artist, query for ONE album
-      // compare the total number of albums
-      
-      // query for all albums if changed
-      
-      // save all albums
-      
-      // find newest album, check release date -> must be recent
-      
-      // send push
+    query.each(function(parseArtist) {
+      var totalAlbums = parseArtist.get("totalAlbums");
 
+      // for each artist, query for ONE album to update totalAlbums
+      spotify.updateTotalAlbumsOfArtist(parseArtist,
 
+      function(error) {
+        if (error) {
+          status.error(error);
+        }
+        // get updated value
+        var newTotalAlbums = httpResponse.data.total;
 
-      // Update to plan value passed in
-      user.set("plan", req.params.plan);
-      if (counter % 100 === 0) {
-        // Set the  job's progress status
-        status.message(counter + " users processed.");
-      }
+        // compare the total number of albums
+        if (totalAlbums != newTotalAlbums) {
 
-      counter += 1;
-      return user.save();
+          // query for all albums if changed
+          spotify.fetchAllAlbumsForArtist(parseArtist,
 
+          function(error) {
+            if (error) {
+              status.error(error);
+            }
+            // all albums are saved
+
+            // find newest album, check release date -> must be recent
+
+            // send push
+
+            // save artist and return
+            if (counter % 1 === 0) {
+              // Set the  job's progress status
+              status.message("NEW ALBUMS for " + counter + " artists!");
+            }
+            counter += 1;
+            return parseArtist.save();
+          });
+        } else {
+          if (counter % 10 === 0) {
+            // Set the  job's progress status
+            status.message(counter + " artists have no new albums.");
+          }
+          counter += 1;
+          return parseArtist.save();
+        }
+      });
 
     }).then(function() {
       // Set the job's success status
-      status.success("Migration completed successfully.");
+      status.success("findNewAlbums completed successfully");
 
     }, function(error) {
       // Set the job's error status
-      status.error("Uh oh, something went wrong.");
+      status.error(error);
 
     });
   });

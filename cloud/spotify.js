@@ -18,12 +18,20 @@
     });
   };
 
+  // save an array of album names to the artists "album" property
+  function processAlbums(albums, parseArtist) {
+    var albumsMap = _.groupBy(albums, 'id');
+    parseArtist.set("albums", albumsMap);
+  };
+
+
   module.exports = {
 
     /* ------------- API CALLS ------------- */
 
     // requires id, https://developer.spotify.com/web-api/get-artists-albums/
     // album_type, country, limit, offset
+    // cb(httpResponse, error)
     getAlbumsForArtist: function(id, params, cb) {
       var endpoint = "artists/" + id + "/albums";
       params.album_type = "album";
@@ -38,6 +46,7 @@
 
     // requires params.q, https://developer.spotify.com/web-api/search-item/
     // type, limit, offset
+    // cb(httpResponse, error)
     searchForArtist: function(params, cb) {
       var endpoint = "search";
       params.type = "artist";
@@ -53,13 +62,24 @@
 
     /* ------------- DATA PROCESSING ------------- */
 
-    // save an array of album names to the artists "album" property
-    processSpotifyAlbums: function(albums, parseArtist) {
-      var albumsMap = _.groupBy(albums, 'id');
-      parseArtist.set("albums", albumsMap);
+    // query for ALL albums of the artist, save them
+    // cb(error)
+    fetchAllAlbumsForArtist: function(parseArtist, cb) {
+      this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
+        limit: 50
+      },
+
+      function(httpResponse, error) {
+        if (error) {
+          cb && cb(error);
+        }
+        parseArtist.set("totalAlbums", httpResponse.data.total);
+        cb && cb();
+      });
     },
 
     // query for ONE album of the artist, save the total number of albums
+    // cb(error)
     updateTotalAlbumsOfArtist: function(parseArtist, cb) {
       this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
         limit: 1
