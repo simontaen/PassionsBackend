@@ -1,6 +1,7 @@
 'use strict';
 
 var _ = require("underscore"),
+  lfm = require('cloud/lastFm.js'),
   spotify = require('cloud/spotify.js');
 
 // save an array of album names to the artists "album" property
