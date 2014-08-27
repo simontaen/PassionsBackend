@@ -20,7 +20,7 @@
 
     return Parse.Cloud.httpRequest({
       method: method,
-      url: _url + endpoint + "/" + ,
+      url: myUrl,
       body: params,
     }).then(function(httpResponse) {
       if (success) {
