@@ -12,7 +12,7 @@ function processSpotifyAlbums(albums, artistObj) {
 
 // save selected artist properties
 // query for ONE album of the artist, save the total number of albums
-function processArtist(artist, artistObj, res) {
+function processArtist(artist, artistObj, cb) {
   var artistId = artist.id;
   spotify.getAlbumsForArtist(artistId, {
     limit: 1
@@ -21,12 +21,12 @@ function processArtist(artist, artistObj, res) {
   function(httpResponse) {
     //processSpotifyAlbums(httpResponse.data.items, artistObj);
     artistObj.set("totalAlbums", httpResponse.data.total);
-    res.success();
+    cb && cb();
   },
 
   function(httpResponse) {
     console.log(httpResponse.text);
-    res.error("spotify.getAlbumsForArtist failed!");
+    cb && cb("spotify.getAlbumsForArtist failed!");
   });
 
   artistObj.set("spotifyId", artistId);
@@ -44,7 +44,9 @@ module.exports = function(config, lfm) {
     },
 
     function(httpResponse) {
-      processArtist(httpResponse.data.artists.items[0], req.object, res);
+      processArtist(httpResponse.data.artists.items[0], req.object, function(error) {
+        error ? res.error(error) : res.success();
+      });
     },
 
     function(httpResponse) {
