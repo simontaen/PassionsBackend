@@ -2,7 +2,7 @@
 
 var _ = require("underscore");
 
-module.exports = function(config, lfm) {
+module.exports = function(config, lfm, spotify) {
 // 15 minute timeout
 
   Parse.Cloud.job("findNewAlbums", function(req, status) {

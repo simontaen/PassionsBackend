@@ -22,7 +22,7 @@
         failure(httpResponse);
       }
     });
-    
+
   };
 
   module.exports = {
