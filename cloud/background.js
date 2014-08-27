@@ -14,20 +14,16 @@ module.exports = function(config) {
     query.exists("favByUsers")
 
     query.each(function(artist) {
-      // for each artist, query lfm to query new albums
-
-      lfm.findAlbumsForArtist({
-        artist: artist.name
-      }, function(httpResponse) {
-        processAlbums(httpResponse.data.topalbums.album, req.object);
-        // cleanup name, this creates a duplicate entry for every falsely names artist
-        // req.object.set("name", httpResponse.data.topalbums["@attr"].artist);
-
-        res.success();
-      }, function(httpResponse) {
-        console.log(httpResponse.text);
-        res.error("LFM call findAlbumsForArtist failed");
-      });
+      // for each artist, query for ONE album
+      // compare the total number of albums
+      
+      // query for all albums if changed
+      
+      // save all albums
+      
+      // find newest album, check release date -> must be recent
+      
+      // send push
 
 
 

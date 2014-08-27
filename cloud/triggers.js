@@ -5,52 +5,38 @@ var _ = require("underscore"),
   spotify = require('cloud/spotify.js');
 
 // save an array of album names to the artists "album" property
-function processLfmAlbums(albums, artistObj) {
-  var albumsMap = _.groupBy(albums, 'name');
-  artistObj.set("albums", albumsMap);
-  /*
-  var albumNames = [];
-  _.each(albums, function(album) {
-    albumNames.push(album.name);
-  });
-  artistObj.set("albums", albumNames);
-  */
-};
-
-// save an array of album names to the artists "album" property
 function processSpotifyAlbums(albums, artistObj) {
   var albumsMap = _.groupBy(albums, 'id');
   artistObj.set("albums", albumsMap);
 };
 
-// save selected properties and find artists albums
+// save selected artist properties
+// query for ONE album of the artist, save the total number of albums
 function processArtist(artist, artistObj, res) {
   var artistId = artist.id;
-  artistObj.set("spotifyId", artistId);
-
-  // fetch all albums
-  spotify.findAlbumsForArtist(artistId, {
+  spotify.getAlbumsForArtist(artistId, {
     limit: 1
   },
 
   function(httpResponse) {
-    // process fetched albums
-    processSpotifyAlbums(httpResponse.data.items, artistObj);
+    //processSpotifyAlbums(httpResponse.data.items, artistObj);
     artistObj.set("totalAlbums", httpResponse.data.total);
     res.success();
   },
 
   function(httpResponse) {
     console.log(httpResponse.text);
-    res.error("spotify.findAlbumsForArtist failed!");
+    res.error("spotify.getAlbumsForArtist failed!");
   });
+
+  artistObj.set("spotifyId", artistId);
 };
 
 module.exports = function(config, lfm) {
   // 3 seconds timeout
 
-  // search for the artist
-  // query for all albums of the artist and save them
+  // search for and save the artist
+  // query for ONE album of the artist, save the total number of albums
   Parse.Cloud.beforeSave("Artist", function(req, res) {
     spotify.searchForArtist({
       q: req.object.get("name"),
@@ -67,8 +53,21 @@ module.exports = function(config, lfm) {
     });
   });
 
+
+  /*
+  // save an array of album names to the artists "album" property
+  function processLfmAlbums(albums, artistObj) {
+    var albumsMap = _.groupBy(albums, 'name');
+    artistObj.set("albums", albumsMap);
+    // var albumNames = [];
+    // _.each(albums, function(album) {
+    //   albumNames.push(album.name);
+    // });
+    // artistObj.set("albums", albumNames);
+  };
+
   Parse.Cloud.beforeSave("Artist2", function(req, res) {
-    lfm.findAlbumsForArtist({
+    lfm.getAlbumsForArtist({
       artist: req.object.get("name")
     },
 
@@ -81,8 +80,9 @@ module.exports = function(config, lfm) {
 
     function(httpResponse) {
       console.log(httpResponse.text);
-      res.error("lfm.findAlbumsForArtist failed");
+      res.error("lfm.getAlbumsForArtist failed");
     });
   });
+  */
 
 };

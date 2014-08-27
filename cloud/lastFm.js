@@ -28,7 +28,7 @@
   module.exports = {
 
     // requires mbid or artist
-    findAlbumsForArtist: function(params, success, failure) {
+    getAlbumsForArtist: function(params, success, failure) {
       params.method = "artist.getTopAlbums";
       console.log("Calling artist.getTopAlbums for artist=" + params.artist);
       return wrappedHttpRequest("POST", params, success, failure);
