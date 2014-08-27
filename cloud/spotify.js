@@ -24,20 +24,30 @@
 
     // requires id, https://developer.spotify.com/web-api/get-artists-albums/
     // album_type, country, limit, offset
-    getAlbumsForArtist: function(id, params, success, failure) {
+    getAlbumsForArtist: function(id, params, cb) {
       var endpoint = "artists/" + id + "/albums";
       params.album_type = "album";
       console.log("Calling spotify " + endpoint);
-      return wrappedHttpRequest(endpoint, params, success, failure);
+      return wrappedHttpRequest(endpoint, params, cb,
+
+      function(httpResponse) {
+        console.log(httpResponse.text);
+        cb && cb(httpResponse, "spotify.getAlbumsForArtist failed!");
+      });
     },
 
     // requires params.q, https://developer.spotify.com/web-api/search-item/
     // type, limit, offset
-    searchForArtist: function(params, success, failure) {
+    searchForArtist: function(params, cb) {
       var endpoint = "search";
       params.type = "artist";
       console.log("Calling spotify " + endpoint + " " + params.q);
-      return wrappedHttpRequest(endpoint, params, success, failure);
+      return wrappedHttpRequest(endpoint, params, cb,
+
+      function(httpResponse) {
+        console.log(httpResponse.text);
+        cb && cb(httpResponse, "spotify.searchForArtist failed!")
+      });
     },
 
 
@@ -49,26 +59,19 @@
       parseArtist.set("albums", albumsMap);
     },
 
-    // save selected artist properties
     // query for ONE album of the artist, save the total number of albums
-    processArtist: function(artist, parseArtist, cb) {
-      var artistId = artist.id;
-      this.getAlbumsForArtist(artistId, {
+    updateTotalAlbumsOfArtist: function(parseArtist, cb) {
+      this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
         limit: 1
       },
 
-      function(httpResponse) {
-        //processSpotifyAlbums(httpResponse.data.items, parseArtist);
+      function(httpResponse, error) {
+        if (error) {
+          cb && cb(error);
+        }
         parseArtist.set("totalAlbums", httpResponse.data.total);
         cb && cb();
-      },
-
-      function(httpResponse) {
-        console.log(httpResponse.text);
-        cb && cb("spotify.getAlbumsForArtist failed!");
       });
-
-      parseArtist.set("spotifyId", artistId);
     }
 
   }
