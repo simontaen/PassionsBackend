@@ -9,9 +9,8 @@ module.exports = function(config) {
 
   Parse.Cloud.job("findNewAlbums", function(req, status) {
     var counter = 0, //
-      query = new Parse.Query("Artist");
-    // Artist should be favorited by some users
-    query.exists("favByUsers")
+      // Artist should be favorited by some users
+      query = (new Parse.Query("Artist")).exists("favByUsers");
 
     query.each(function(parseArtist) {
       var totalAlbums = parseArtist.get("totalAlbums");
@@ -34,7 +33,7 @@ module.exports = function(config) {
 
           function(error) {
             if (error) {
-              status.error(error);
+              return status.error(error);
             }
             // all albums are saved
 
@@ -60,7 +59,10 @@ module.exports = function(config) {
         }
       });
 
+
+      // return a promise;
     }).then(function() {
+      // promise of each
       // Set the job's success status
       status.success("findNewAlbums completed successfully");
 
