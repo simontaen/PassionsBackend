@@ -15,18 +15,10 @@ module.exports = function(config, lfm) {
     spotify.searchForArtist({
       q: parseArtist.get("name"),
       limit: 1
-    },
-
-    function(httpResponse, error) {
-      if (error) {
-        return res.error(error);
-      }
+    }).then(function(httpResponse) {
       parseArtist.set("spotifyId", httpResponse.data.artists.items[0].id);
-      
-      spotify.updateTotalAlbumsOfArtist(parseArtist, function(error) {
-        error ? res.error(error) : res.success();
-      });
-    });
+      return spotify.updateTotalAlbumsOfArtist(parseArtist);
+    }).then(res.success, res.error);
   });
 
 

@@ -28,7 +28,7 @@ function findNewAlbumsForArtist(parseArtist) {
       // artist got saved by previous call, resolve successfully
       return Parse.Promise.as();
     }
-    
+
   }).then(function(parseArtist) {
     if (parseArtist) {
       // fetchAllAlbumsForArtist is completed
@@ -59,6 +59,7 @@ module.exports = function(config) {
   // 15 minute timeout
 
   Parse.Cloud.job("findNewAlbums", function(req, status) {
+    // https://parse.com/docs/cloud_code_guide#jobs
     var counter = 0, //
       // Artist should be favorited by some users
       query = (new Parse.Query("Artist")).exists("favByUsers");

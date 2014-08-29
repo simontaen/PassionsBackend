@@ -33,7 +33,7 @@
       var endpoint = "artists/" + id + "/albums";
       params.album_type = "album";
       console.log("Calling spotify " + endpoint);
-      return this.wrappedHttpRequest(endpoint, params);
+      return wrappedHttpRequest(endpoint, params);
     },
 
     // requires params.q, https://developer.spotify.com/web-api/search-item/
@@ -43,7 +43,7 @@
       var endpoint = "search";
       params.type = "artist";
       console.log("Calling spotify " + endpoint + " " + params.q);
-      return this.wrappedHttpRequest(endpoint, params);
+      return wrappedHttpRequest(endpoint, params);
     },
 
 
