@@ -5,8 +5,9 @@ var _ = require("underscore"),
   spotify = require('cloud/spotify.js');
 
 // 
-function findNewAlbumsForArtist(parseArtist) {
+function findNewAlbumsForArtist(parseArtist, status) {
   var totalAlbums = parseArtist.get("totalAlbums");
+  var counter = 0;
 
   // for each artist, query for ONE album to update totalAlbums
   return spotify.updateTotalAlbumsOfArtist(parseArtist).then(function(parseArtist) {
@@ -68,7 +69,7 @@ module.exports = function(config) {
       var promises = [];
       _.each(results, function(parseArtist) {
         // Start the find immediately and add its promise to the list.
-        promises.push(findNewAlbumsForArtist(parseArtist));
+        promises.push(findNewAlbumsForArtist(parseArtist, status));
       });
       // Return a new promise that is resolved when all of the deletes are finished.
       return Parse.Promise.when(promises);
