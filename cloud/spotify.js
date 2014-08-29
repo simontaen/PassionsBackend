@@ -52,7 +52,7 @@
     // query for ALL albums of the artist, save them
     // returns a promise with then(parseArtist), error(?)
     fetchAllAlbumsForArtist: function(parseArtist) {
-      this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
+      return this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
         limit: 50
       }).then(function(httpResponse) {
         parseArtist.set("totalAlbums", httpResponse.data.total);
@@ -63,7 +63,7 @@
     // query for ONE album of the artist, save the total number of albums
     // returns a promise with then(parseArtist), error(?)
     updateTotalAlbumsOfArtist: function(parseArtist) {
-      this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
+      return this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
         limit: 1
       }).then(function(httpResponse) {
         parseArtist.set("totalAlbums", httpResponse.data.total);

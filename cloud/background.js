@@ -68,7 +68,7 @@ module.exports = function(config) {
       var promises = [];
       _.each(results, function(parseArtist) {
         // Start the find immediately and add its promise to the list.
-        promises.push(this.findNewAlbumsForArtist(parseArtist));
+        promises.push(findNewAlbumsForArtist(parseArtist));
       });
       // Return a new promise that is resolved when all of the deletes are finished.
       return Parse.Promise.when(promises);
