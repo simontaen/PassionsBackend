@@ -2,19 +2,17 @@
 
 (function() {
 
-  function wrappedHttpRequest(endpoint, params, success, failure) {
+  // returns a promise with then(httpResponse), error(httpResponse)
+  function wrappedHttpRequest(endpoint, params) {
     var myUrl = endpoint ? "https://api.spotify.com/v1/" + endpoint + "/" : _url;
-    params.limit = params.limit || "1";
+    params.limit = params.limit || 1;
 
     return Parse.Cloud.httpRequest({
       url: myUrl,
       params: params,
-      success: function(httpResponse) {
-        success && success(httpResponse);
-      },
-      error: function(httpResponse) {
-        failure && failure(httpResponse);
-      }
+    }).fail(function(httpResponse) {
+      console.error(arguments.callee.caller.toString() + " failed");
+      console.error(httpResponse.text);
     });
   };
 
@@ -24,73 +22,52 @@
     parseArtist.set("albums", albumsMap);
   };
 
-
   module.exports = {
 
     /* ------------- API CALLS ------------- */
 
     // requires id, https://developer.spotify.com/web-api/get-artists-albums/
     // album_type, country, limit, offset
-    // cb(httpResponse, error)
-    getAlbumsForArtist: function(id, params, cb) {
+    // returns a promise with then(httpResponse), error(httpResponse)
+    getAlbumsForArtist: function(id, params) {
       var endpoint = "artists/" + id + "/albums";
       params.album_type = "album";
       console.log("Calling spotify " + endpoint);
-      return wrappedHttpRequest(endpoint, params, cb,
-
-      function(httpResponse) {
-        console.log(httpResponse.text);
-        cb && cb(httpResponse, "spotify.getAlbumsForArtist failed!");
-      });
+      return this.wrappedHttpRequest(endpoint, params);
     },
 
     // requires params.q, https://developer.spotify.com/web-api/search-item/
     // type, limit, offset
-    // cb(httpResponse, error)
-    searchForArtist: function(params, cb) {
+    // returns a promise with then(httpResponse), error(httpResponse)
+    searchForArtist: function(params) {
       var endpoint = "search";
       params.type = "artist";
       console.log("Calling spotify " + endpoint + " " + params.q);
-      return wrappedHttpRequest(endpoint, params, cb,
-
-      function(httpResponse) {
-        console.log(httpResponse.text);
-        cb && cb(httpResponse, "spotify.searchForArtist failed!")
-      });
+      return this.wrappedHttpRequest(endpoint, params);
     },
 
 
     /* ------------- DATA PROCESSING ------------- */
 
     // query for ALL albums of the artist, save them
-    // cb(error)
-    fetchAllAlbumsForArtist: function(parseArtist, cb) {
+    // returns a promise with then(parseArtist), error(?)
+    fetchAllAlbumsForArtist: function(parseArtist) {
       this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
         limit: 50
-      },
-
-      function(httpResponse, error) {
-        if (error) {
-          cb && cb(error);
-        }
+      }).then(function(httpResponse) {
         parseArtist.set("totalAlbums", httpResponse.data.total);
-        cb && cb();
+        return parseArtist.save();
       });
     },
 
     // query for ONE album of the artist, save the total number of albums
-    // cb(error)
-    updateTotalAlbumsOfArtist: function(parseArtist, cb) {
+    // returns a promise with then(parseArtist), error(?)
+    updateTotalAlbumsOfArtist: function(parseArtist) {
       this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
         limit: 1
-      },
-
-      function(httpResponse, error) {
-        if (error) {
-          cb && cb(error);
-        }
+      }).then(function(httpResponse) {
         parseArtist.set("totalAlbums", httpResponse.data.total);
-        cb && cb();
+        return parseArtist.save();
       });
     }
 
