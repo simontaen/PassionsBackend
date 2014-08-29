@@ -3,7 +3,7 @@
 (function() {
 
   // returns a promise with then(httpResponse), error(httpResponse)
-  function wrappedHttpRequest(endpoint, params) {
+  function wrappedHttpRequest(endpoint, params, caller) {
     var myUrl = endpoint ? "https://api.spotify.com/v1/" + endpoint + "/" : _url;
     params.limit = params.limit || 1;
 
@@ -11,7 +11,7 @@
       url: myUrl,
       params: params,
     }).fail(function(httpResponse) {
-      console.error(arguments.callee.caller.toString() + " failed");
+      console.error(caller + " failed");
       console.error(httpResponse.text);
     });
   };
@@ -33,7 +33,7 @@
       var endpoint = "artists/" + id + "/albums";
       params.album_type = "album";
       console.log("Calling spotify " + endpoint);
-      return wrappedHttpRequest(endpoint, params);
+      return wrappedHttpRequest(endpoint, params, "spotify.getAlbumsForArtist");
     },
 
     // requires params.q, https://developer.spotify.com/web-api/search-item/
@@ -43,7 +43,7 @@
       var endpoint = "search";
       params.type = "artist";
       console.log("Calling spotify " + endpoint + " " + params.q);
-      return wrappedHttpRequest(endpoint, params);
+      return wrappedHttpRequest(endpoint, params, "spotify.searchForArtist");
     },
 
 
