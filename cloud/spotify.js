@@ -17,7 +17,7 @@
     });
   };
 
-  // save an array of album names to the artists "album" property
+  // save an ARRAY of album names to the artists "album" property
   function processAlbums(albums, parseArtist) {
     var albumsMap = _.groupBy(albums, 'id');
     parseArtist.set("albums", albumsMap);
@@ -34,7 +34,7 @@
       var endpoint = "artists/" + id + "/albums/";
       params.album_type = "album";
       console.log("Calling spotify " + endpoint);
-      return wrappedHttpRequest(myUrl + endpoint, params, "spotify.getAlbumsForArtist");
+      return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.getAlbumsForArtist");
     },
 
     // requires params.q, https://developer.spotify.com/web-api/search-item/
@@ -45,7 +45,7 @@
       params.type = "artist";
       params.limit = params.limit || 1;
       console.log("Calling spotify " + endpoint + " " + params.q);
-      return wrappedHttpRequest(myUrl + endpoint, params, "spotify.searchForArtist");
+      return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.searchForArtist");
     },
 
 
