@@ -2,11 +2,12 @@
 
 (function() {
 
-  // returns a promise with then(httpResponse), error(httpResponse)
-  function wrappedHttpRequest(endpoint, params, caller) {
-    var myUrl = endpoint ? "https://api.spotify.com/v1/" + endpoint + "/" : _url;
-    params.limit = params.limit || 1;
+  var apiUrl = "https://api.spotify.com/v1/";
+  var appId = "nCQQ7cw92dCJJoH1cwbEv5ZBFmsEyFgSlVfmljp9";
+  var restKey = "BAamVLwiBS0XY64WhlYfxADSq0FjRSP97fIkWu4d";
 
+  // returns a promise with then(httpResponse), error(httpResponse)
+  function wrappedHttpRequest(myUrl, params, caller) {
     return Parse.Cloud.httpRequest({
       url: myUrl,
       params: params,
@@ -30,20 +31,21 @@
     // album_type, country, limit, offset
     // returns a promise with then(httpResponse), error(httpResponse)
     getAlbumsForArtist: function(id, params) {
-      var endpoint = "artists/" + id + "/albums";
+      var endpoint = "artists/" + id + "/albums/";
       params.album_type = "album";
       console.log("Calling spotify " + endpoint);
-      return wrappedHttpRequest(endpoint, params, "spotify.getAlbumsForArtist");
+      return wrappedHttpRequest(myUrl + endpoint, params, "spotify.getAlbumsForArtist");
     },
 
     // requires params.q, https://developer.spotify.com/web-api/search-item/
     // type, limit, offset
     // returns a promise with then(httpResponse), error(httpResponse)
     searchForArtist: function(params) {
-      var endpoint = "search";
+      var endpoint = "search/";
       params.type = "artist";
+      params.limit = params.limit || 1;
       console.log("Calling spotify " + endpoint + " " + params.q);
-      return wrappedHttpRequest(endpoint, params, "spotify.searchForArtist");
+      return wrappedHttpRequest(myUrl + endpoint, params, "spotify.searchForArtist");
     },
 
 
@@ -52,12 +54,17 @@
     // query for ALL albums of the artist, save them
     // returns a promise with then(parseArtist), error(?)
     fetchAllAlbumsForArtist: function(parseArtist) {
+
       return this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
         limit: 50
       }).then(function(httpResponse) {
         parseArtist.set("totalAlbums", httpResponse.data.total);
         return parseArtist.save();
       });
+
+      // return wrappedHttpRequest(nextUrl, {});
+
+
     },
 
     // query for ONE album of the artist, save the total number of albums
