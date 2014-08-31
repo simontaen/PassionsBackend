@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = require("underscore");
+
 (function() {
 
   var apiUrl = "https://api.spotify.com/v1/";
@@ -52,20 +54,33 @@
     /* ------------- DATA PROCESSING ------------- */
     /* As a rule I never save the artist here -> caller! */
 
-    // query for ALL albums of the artist, save them
+    // query for ALL albums of the artist, set them on the passed artist
     // returns a promise with then(parseArtist), error(?)
     fetchAllAlbumsForArtist: function(parseArtist) {
+      var albums;
+
+      function processor(httpResponse) {
+        var limit = httpResponse.data.limit, //
+          offset = httpResponse.data.offset, //
+          total = httpResponse.data.total, //
+          nextUrl = httpResponse.data.next; //
+
+        // cache albums
+        albums = albums ? _.union(albums, httpResponse.data.items) : httpResponse.data.items;
+
+        if (limit + offset < total && nextUrl) {
+          // call next url
+          return wrappedHttpRequest(nextUrl).then(processor);
+        } else {
+          // we are done, process albums
+          processAlbums(albums, parseArtist);
+          return Parse.Promise.as(parseArtist);;
+        }
+      };
 
       return this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
         limit: 50
-      }).then(function(httpResponse) {
-        parseArtist.set("totalAlbums", httpResponse.data.total);
-        return parseArtist.save();
-      });
-
-      // return wrappedHttpRequest(nextUrl, {});
-
-
+      }).then(processor);
     },
 
     // query for ONE album of the artist, sets totalAlbums on the passed artist
@@ -74,7 +89,9 @@
       return this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
         limit: 1
       }).then(function(httpResponse) {
-        parseArtist.set("totalAlbums", httpResponse.data.total);
+        if (parseArtist.get("totalAlbums") != httpResponse.data.total) {
+          parseArtist.set("totalAlbums", httpResponse.data.total);
+        }
         return Parse.Promise.as(parseArtist);;
       });
     }
