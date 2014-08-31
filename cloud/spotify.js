@@ -14,15 +14,41 @@ var _ = require("underscore");
       url: myUrl,
       params: params,
     }).fail(function(httpResponse) {
-      console.error(caller + " failed");
+      caller ? console.error(caller + " failed") : console.error(myUrl + " failed");
       console.error(httpResponse.text);
     });
   };
 
-  // set an ARRAY of album names to the artists "album" property
-  function processAlbums(albums, parseArtist) {
-    var albumsMap = _.groupBy(albums, 'id');
-    parseArtist.set("albums", albumsMap);
+  // For the passed albums, call the link to get complete info
+  // Set the albums propertiy with selected album values
+  // https://developer.spotify.com/web-api/get-album/
+  function fetchAlbumInfo(albums, parseArtist) {
+    var promises = [],
+      completeAlbums = [];
+
+    _.each(albums, function(album) {
+      // Start the request immediately and add its promise to the list.
+      promises.push(wrappedHttpRequest(album.href).then(function(httpResponse) {
+        var newAlbum = {}, data = httpResponse.data;
+        newAlbum.href = data.href;
+        newAlbum.id = data.id;
+        newAlbum.name = data.name;
+        newAlbum.release_date = data.release_date;
+        newAlbum.release_date_precision = data.release_date_precision;
+
+        // cache albums
+        completeAlbums.push(newAlbum);
+        return Parse.Promise.as();;
+      }));
+    });
+
+    // Return a new promise that is resolved when all are finished
+    return Parse.Promise.when(promises).then(function() {
+      // set albums on artist
+      console.log("TOTAL ALBUMS: " + _.size(completeAlbums));
+      parseArtist.set("albums", _.groupBy(completeAlbums, 'id'));
+      return Parse.Promise.as(parseArtist);;
+    });
   };
 
   module.exports = {
@@ -59,25 +85,25 @@ var _ = require("underscore");
     fetchAllAlbumsForArtist: function(parseArtist) {
       var albums;
 
+      // cache the results and call "next"
       function processor(httpResponse) {
-        var limit = httpResponse.data.limit, //
-          offset = httpResponse.data.offset, //
-          total = httpResponse.data.total, //
-          nextUrl = httpResponse.data.next; //
+        var data = httpResponse.data,
+          nextUrl = data.next;
 
         // cache albums
-        albums = albums ? _.union(albums, httpResponse.data.items) : httpResponse.data.items;
+        albums = albums ? _.union(albums, data.items) : data.items;
 
-        if (limit + offset < total && nextUrl) {
-          // call next url
+        if (data.limit + data.offset < data.total && nextUrl) {
+          // call next url recursivly
           return wrappedHttpRequest(nextUrl).then(processor);
         } else {
-          // we are done, process albums
-          processAlbums(albums, parseArtist);
-          return Parse.Promise.as(parseArtist);;
+          // we are done, all albums are known, get the complete infos
+          console.log("Found " + _.size(albums) + " Albums!");
+          return fetchAlbumInfo(albums, parseArtist);
         }
       };
 
+      // initial call
       return this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
         limit: 50
       }).then(processor);
