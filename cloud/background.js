@@ -4,7 +4,22 @@ var _ = require("underscore"),
   lfm = require('cloud/lastFm.js'),
   spotify = require('cloud/spotify.js');
 
-// 
+// find newest albums in array
+function findNewestAlbum(albums) {
+  var newestAlbum, //
+  newestAlbumReleaseDate;
+
+  _.each(albums, function(album) {
+    // read releasedate
+    // compare to newest
+    // cache if newer
+  });
+  return newestAlbum;
+};
+
+// Checks for new albums (via total albums)
+// Fetches all albums if new available
+// Sends push notification for newest one
 function findNewAlbumsForArtist(parseArtist, status) {
   var totalAlbums = parseArtist.get("totalAlbums"), //
     counter = 0;
@@ -17,7 +32,7 @@ function findNewAlbumsForArtist(parseArtist, status) {
       return spotify.fetchAllAlbumsForArtist(parseArtist);
 
     } else {
-      if (counter % 10 === 0) {
+      if (counter % 1 === 0) {
         // Set the  job's progress status
         status.message(counter + " artists have no new albums.");
       }
@@ -28,9 +43,14 @@ function findNewAlbumsForArtist(parseArtist, status) {
     if (parseArtist && totalAlbums != parseArtist.get("totalAlbums")) {
       // all albums are set
 
-      // find newest album, check release date -> must be recent
+      // find newest album
+      var newestAlbum = findNewestAlbum(parseArtist.get("albums"));
+
+      //check release date -> must be recent
+
 
       // send push
+      console.log("DEBUG: Sending push message");
 
       // save artist and return
       if (counter % 1 === 0) {
@@ -63,7 +83,7 @@ module.exports = function(config) {
         // Start the find immediately and add its promise to the list.
         promises.push(findNewAlbumsForArtist(parseArtist, status));
       });
-      // Return a new promise that is resolved when all of the deletes are finished.
+      // Return a new promise that is resolved when all are finished.
       return Parse.Promise.when(promises);
 
     }).then(function() {
