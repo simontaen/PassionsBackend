@@ -6,17 +6,13 @@ var _ = require("underscore"),
 
 // 
 function findNewAlbumsForArtist(parseArtist, status) {
-  var totalAlbums = parseArtist.get("totalAlbums");
-  var counter = 0;
+  var totalAlbums = parseArtist.get("totalAlbums"), //
+    counter = 0;
 
   // for each artist, query for ONE album to update totalAlbums
   return spotify.updateTotalAlbumsOfArtist(parseArtist).then(function(parseArtist) {
-    // updateTotalAlbumsOfArtist is completed
-    // get updated value
-    var newTotalAlbums = parseArtist.get("totalAlbums");
-
     // compare the total number of albums
-    if (totalAlbums != newTotalAlbums) {
+    if (totalAlbums != parseArtist.get("totalAlbums")) {
       // query for all albums if changed
       return spotify.fetchAllAlbumsForArtist(parseArtist);
 
@@ -26,14 +22,11 @@ function findNewAlbumsForArtist(parseArtist, status) {
         status.message(counter + " artists have no new albums.");
       }
       counter += 1;
-      // artist got saved by previous call, resolve successfully
-      return Parse.Promise.as();
+      return Parse.Promise.as(parseArtist);
     }
-
   }).then(function(parseArtist) {
-    if (parseArtist) {
-      // fetchAllAlbumsForArtist is completed
-      // all albums are saved
+    if (parseArtist && totalAlbums != parseArtist.get("totalAlbums")) {
+      // all albums are set
 
       // find newest album, check release date -> must be recent
 
@@ -45,14 +38,11 @@ function findNewAlbumsForArtist(parseArtist, status) {
         status.message("NEW ALBUMS for " + counter + " artists!");
       }
       counter += 1;
-      return parseArtist.save();
-    } else {
-      // no more action needed
-      return Parse.Promise.as();
     }
 
+    // no more action needed
+    return parseArtist.save();
   });
-
 };
 
 

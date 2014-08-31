@@ -17,7 +17,7 @@
     });
   };
 
-  // save an ARRAY of album names to the artists "album" property
+  // set an ARRAY of album names to the artists "album" property
   function processAlbums(albums, parseArtist) {
     var albumsMap = _.groupBy(albums, 'id');
     parseArtist.set("albums", albumsMap);
@@ -50,6 +50,7 @@
 
 
     /* ------------- DATA PROCESSING ------------- */
+    /* As a rule I never save the artist here -> caller! */
 
     // query for ALL albums of the artist, save them
     // returns a promise with then(parseArtist), error(?)
@@ -67,14 +68,14 @@
 
     },
 
-    // query for ONE album of the artist, save the total number of albums
-    // returns a promise with then(parseArtist), error(?)
+    // query for ONE album of the artist, sets totalAlbums on the passed artist
+    // returns a promise with then(parseArtist), error(httpResponse)
     updateTotalAlbumsOfArtist: function(parseArtist) {
       return this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
         limit: 1
       }).then(function(httpResponse) {
         parseArtist.set("totalAlbums", httpResponse.data.total);
-        return parseArtist.save();
+        return Parse.Promise.as(parseArtist);;
       });
     }
 
