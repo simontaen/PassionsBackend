@@ -1,37 +1,36 @@
 'use strict';
 
+var _ = require("underscore");
+
 (function() {
 
-  function wrappedHttpRequest(method, params, success, failure) {
-    params.api_key = "aed3367b0133ab707cb4e5b6b04da3e7";
+  var apiUrl = "http://ws.audioscrobbler.com/2.0/";
+  var apiKey = "nCQQ7cw92dCJJoH1cwbEv5ZBFmsEyFgSlVfmljp9";
+
+  // returns a promise with then(httpResponse), error(httpResponse)
+  function wrappedHttpRequest(params, caller) {
+    params.api_key = apiKey;
     params.format = "json";
-    params.autocorrect = "1";
     //params.User_Agent = "Passions";
     //params.Accept = "application/json";
 
     return Parse.Cloud.httpRequest({
-      method: method,
-      url: "http://ws.audioscrobbler.com/2.0/",
-      body: params,
-    }).then(function(httpResponse) {
-      if (success) {
-        success(httpResponse);
-      }
-    }, function(httpResponse) {
-      if (failure) {
-        failure(httpResponse);
-      }
+      url: apiUrl,
+      params: params,
+    }).fail(function(httpResponse) {
+      caller ? console.error(caller + " failed") : console.error(params.method + " failed");
+      console.error(httpResponse.text);
     });
-
   };
 
   module.exports = {
 
     // requires mbid or artist
-    getAlbumsForArtist: function(params, success, failure) {
+    getAlbumsForArtist: function(params) {
       params.method = "artist.getTopAlbums";
+      params.autocorrect = "1";
       console.log("Calling artist.getTopAlbums for artist=" + params.artist);
-      return wrappedHttpRequest("POST", params, success, failure);
+      return wrappedHttpRequest(params, "lfm.getAlbumsForArtist");
     }
 
   }

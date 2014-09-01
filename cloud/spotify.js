@@ -1,12 +1,13 @@
 'use strict';
 
-var _ = require("underscore");
+var _ = require("underscore"),
+  lfm = require('cloud/lastFm.js');
 
 (function() {
 
   var apiUrl = "https://api.spotify.com/v1/";
-  var appId = "nCQQ7cw92dCJJoH1cwbEv5ZBFmsEyFgSlVfmljp9";
-  var restKey = "BAamVLwiBS0XY64WhlYfxADSq0FjRSP97fIkWu4d";
+  //var appId = "nCQQ7cw92dCJJoH1cwbEv5ZBFmsEyFgSlVfmljp9";
+  //var restKey = "BAamVLwiBS0XY64WhlYfxADSq0FjRSP97fIkWu4d";
 
   // returns a promise with then(httpResponse), error(httpResponse)
   function wrappedHttpRequest(myUrl, params, caller) {

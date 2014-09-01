@@ -43,7 +43,7 @@ function findNewAlbumsForArtist(parseArtist, status) {
       return spotify.fetchAllAlbumsForArtist(parseArtist);
 
     } else {
-      if (counter % 1 === 0) {
+      if (counter % 5 === 0) {
         // Set the  job's progress status
         status.message(counter + " artists have no new albums.");
       }
@@ -65,15 +65,12 @@ function findNewAlbumsForArtist(parseArtist, status) {
       // send push
       console.log("DEBUG: Sending push message");
 
-      // save artist and return
-      if (counter % 1 === 0) {
-        // Set the  job's progress status
-        status.message("NEW ALBUMS for " + counter + " artists!");
-      }
+      // Set the  job's progress status
+      status.message("NEW ALBUMS for " + counter + " artists!");
       counter += 1;
     }
 
-    // no more action needed
+    // save artist and return
     return parseArtist.save();
   });
 };
