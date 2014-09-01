@@ -34,10 +34,14 @@ var _ = require("underscore");
       console.log("Calling Last.fm artist.getCorrection for artist=" + params.artist);
 
       return wrappedHttpRequest(params, "lfm.getCorrection").then(function(httpResponse) {
+        var mbid = undefined;
         // Take the correction if it exists
         if (httpResponse.data.corrections.correction) {
           parseArtist.set("name", httpResponse.data.corrections.correction.artist.name);
-          parseArtist.set("lfmId", httpResponse.data.corrections.correction.artist.mbid);
+          mbid = httpResponse.data.corrections.correction.artist.mbid;
+          if (mbid && mbid != "") {
+            parseArtist.set("lfmId", mbid);
+          }
         };
         return Parse.Promise.as(parseArtist);;
       });
