@@ -9,27 +9,31 @@ var _ = require("underscore"),
   //var appId = "nCQQ7cw92dCJJoH1cwbEv5ZBFmsEyFgSlVfmljp9";
   //var restKey = "BAamVLwiBS0XY64WhlYfxADSq0FjRSP97fIkWu4d";
 
-  // returns a promise with then(httpResponse), error(httpResponse)
-  function wrappedHttpRequest(myUrl, params, caller) {
-    return Parse.Cloud.httpRequest({
-      url: myUrl,
-      params: params,
-    }).fail(function(httpResponse) {
-      caller ? console.error(caller + " failed") : console.error(myUrl + " failed");
-      console.error(httpResponse.text);
-    });
+  // find the exact artist name match in artist array
+  function findExactMatch(items, artistName) {
+    var result = undefined;
+    if (items) {
+      _.each(items, function(item) {
+        if (artistName === item.name) {
+          result = item;
+          return;
+        }
+      });
+    }
+    return result;
   };
 
-  // For the passed albums, call the link to get complete info
+  // For the passed albums, fetch the full album info
   // Set the albums propertiy with selected album values
-  // https://developer.spotify.com/web-api/get-album/
   function fetchAlbumInfo(albums, parseArtist) {
     var promises = [],
       completeAlbums = [];
 
     _.each(albums, function(album) {
-      // Start the request immediately and add its promise to the list.
-      promises.push(wrappedHttpRequest(album.href).then(function(httpResponse) {
+      promises.push(
+      // https://developer.spotify.com/web-api/get-album/
+      // call the link for the full album on every album, start immediatly
+      wrappedHttpRequest(album.href, {}, "spotify.fetchAlbumInfo").then(function(httpResponse) {
         var newAlbum = {}, data = httpResponse.data;
         newAlbum.href = data.href;
         newAlbum.id = data.id;
@@ -37,9 +41,9 @@ var _ = require("underscore"),
         newAlbum.release_date = data.release_date;
         newAlbum.release_date_precision = data.release_date_precision;
 
-        // cache albums
+        // cache the new album and return successfully
         completeAlbums.push(newAlbum);
-        return Parse.Promise.as();;
+        return Parse.Promise.as();
       }));
     });
 
@@ -53,43 +57,73 @@ var _ = require("underscore"),
     });
   };
 
+  // return a string intented for logging
+  function getParamsForLog(params) {
+    var result = "";
+    if (params) {
+      result += params.q ? " " + params.q : "";
+    }
+    return result;
+  };
+
+  /* ------------ Pure API calls ------------ */
+
+  // returns a promise with then(httpResponse), error(httpResponse)
+  function wrappedHttpRequest(myUrl, params, caller) {
+    console.log("Calling " + myUrl + getParamsForLog(params) + " from " + caller);
+    return Parse.Cloud.httpRequest({
+      url: myUrl,
+      params: params,
+    }).fail(function(httpResponse) {
+      caller ? console.error(caller + " failed") : console.error(myUrl + " failed");
+      console.error(httpResponse.text);
+    });
+  };
+
+  // requires id, https://developer.spotify.com/web-api/get-artists-albums/
+  // album_type, country, limit, offset
+  // returns a promise with then(httpResponse), error(httpResponse)
+  function getAlbumsForArtist(id, params) {
+    var endpoint = "artists/" + id + "/albums/";
+    params.album_type = "album";
+    return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.getAlbumsForArtist");
+  };
+
   module.exports = {
 
-    /* ------------- API CALLS ------------- */
+    /* As a rule I never save the artist here -> caller!
+     * Only SET the API results on the parse objects
+     */
 
-    // requires id, https://developer.spotify.com/web-api/get-artists-albums/
-    // album_type, country, limit, offset
-    // returns a promise with then(httpResponse), error(httpResponse)
-    getAlbumsForArtist: function(id, params) {
-      var endpoint = "artists/" + id + "/albums/";
-      params.album_type = "album";
-      console.log("Calling spotify " + endpoint);
-      return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.getAlbumsForArtist");
-    },
-
-    // requires params.q, https://developer.spotify.com/web-api/search-item/
-    // type, limit, offset
-    // returns a promise with then(httpResponse), error(httpResponse)
-    searchForArtist: function(params, parseArtist) {
+    // query for Last.fm name correction, then search spotify
+    // takes the first spotify result if no exact match is found
+    // returns a promise with then(parseArtist), error(httpResponse)
+    fetchSpotifyArtist: function(parseArtist) {
       var endpoint = "search/";
 
       // call lfm for name correction
-      return lfm.getCorrection({
-        artist: params.q
+      return lfm.fetchCorrection({
+        artist: parseArtist.get("name")
       }, parseArtist).then(function(parseArtist) {
-        // get the updated name
-        params.q = parseArtist.get("name");
-        params.type = "artist";
-        console.log("Calling spotify " + endpoint + " " + params.q);
-        return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.searchForArtist");
+        var params = {
+          // get the updated name
+          q: parseArtist.get("name"),
+          type: "artist"
+        };
+
+        // https://developer.spotify.com/web-api/search-item/
+        return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.fetchSpotifyArtist").
+        then(function(httpResponse) {
+          var spotifyArtist = findExactMatch(httpResponse.data.artists.items, parseArtist.get("name")),
+            spotifyId = spotifyArtist ? spotifyArtist.id : httpResponse.data.artists.items[0].id;
+
+          parseArtist.set("spotifyId", spotifyId);
+          return Parse.Promise.as(parseArtist);
+        });
       });
     },
 
-
-    /* ------------- DATA PROCESSING ------------- */
-    /* As a rule I never save the artist here -> caller! */
-
-    // query for ALL albums of the artist, set them on the passed artist
+    // query for ALL albums of the artist and the full album info
     // returns a promise with then(parseArtist), error(?)
     fetchAllAlbumsForArtist: function(parseArtist) {
       var albums;
@@ -98,13 +132,12 @@ var _ = require("underscore"),
       function processor(httpResponse) {
         var data = httpResponse.data,
           nextUrl = data.next;
-
         // cache albums
         albums = albums ? _.union(albums, data.items) : data.items;
 
         if (data.limit + data.offset < data.total && nextUrl) {
           // call next url recursivly
-          return wrappedHttpRequest(nextUrl).then(processor);
+          return wrappedHttpRequest(nextUrl, {}, "spotify.fetchAllAlbumsForArtist").then(processor);
         } else {
           // we are done, all albums are known, get the complete infos
           return fetchAlbumInfo(albums, parseArtist);
@@ -112,21 +145,22 @@ var _ = require("underscore"),
       };
 
       // initial call
-      return this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
+      return getAlbumsForArtist(parseArtist.get("spotifyId"), {
         limit: 50
       }).then(processor);
     },
 
-    // query for ONE album of the artist, sets totalAlbums on the passed artist
+    // query for ONE album of the artist
     // returns a promise with then(parseArtist), error(httpResponse)
-    updateTotalAlbumsOfArtist: function(parseArtist) {
-      return this.getAlbumsForArtist(parseArtist.get("spotifyId"), {
+    fetchTotalAlbumsOfArtist: function(parseArtist) {
+      return getAlbumsForArtist(parseArtist.get("spotifyId"), {
         limit: 1
       }).then(function(httpResponse) {
+        // update if different
         if (parseArtist.get("totalAlbums") != httpResponse.data.total) {
           parseArtist.set("totalAlbums", httpResponse.data.total);
         }
-        return Parse.Promise.as(parseArtist);;
+        return Parse.Promise.as(parseArtist);
       });
     }
 

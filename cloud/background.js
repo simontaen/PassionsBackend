@@ -36,7 +36,7 @@ function findNewAlbumsForArtist(parseArtist, status) {
     counter = 0;
 
   // for each artist, query for ONE album to update totalAlbums
-  return spotify.updateTotalAlbumsOfArtist(parseArtist).then(function(parseArtist) {
+  return spotify.fetchTotalAlbumsOfArtist(parseArtist).then(function(parseArtist) {
     // compare the total number of albums
     if (totalAlbums != parseArtist.get("totalAlbums")) {
       // query for all albums if changed
@@ -45,11 +45,12 @@ function findNewAlbumsForArtist(parseArtist, status) {
     } else {
       if (counter % 5 === 0) {
         // Set the  job's progress status
-        status.message(counter + " artists have no new albums.");
+        status.message(counter + " artists have 0 new albums.");
       }
       counter += 1;
       return Parse.Promise.as(parseArtist);
     }
+    
   }).then(function(parseArtist) {
     if (parseArtist && totalAlbums != parseArtist.get("totalAlbums")) {
       // all albums are set
