@@ -4,7 +4,21 @@ var _ = require("underscore"),
   lfm = require('cloud/lastFm.js'),
   spotify = require('cloud/spotify.js');
 
-module.exports = function(config, lfm) {
+// find the exact artist name match
+function findExactMatch(items, artistName) {
+  var result = undefined;
+  if (items) {
+    _.each(items, function(item) {
+      if (artistName === item.name) {
+        result = item;
+        return;
+      }
+    });
+  }
+  return result;
+}
+
+module.exports = function(config) {
   // 3 seconds timeout
 
   // search for and save the artist
@@ -14,10 +28,12 @@ module.exports = function(config, lfm) {
 
     if (!parseArtist.get("spotifyId")) {
       spotify.searchForArtist({
-        q: parseArtist.get("name"),
-        limit: 1
+        q: parseArtist.get("name")
       }, parseArtist).then(function(httpResponse) {
-        parseArtist.set("spotifyId", httpResponse.data.artists.items[0].id);
+        var spotifyArtist = findExactMatch(httpResponse.data.artists.items, parseArtist.get("name")),
+          spotifyId = spotifyArtist ? spotifyArtist.id : httpResponse.data.artists.items[0].id;
+
+        parseArtist.set("spotifyId", spotifyId);
         return spotify.updateTotalAlbumsOfArtist(parseArtist);
       }).then(res.success, res.error);
     } else {

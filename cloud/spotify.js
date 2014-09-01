@@ -80,7 +80,6 @@ var _ = require("underscore"),
         // get the updated name
         params.q = parseArtist.get("name");
         params.type = "artist";
-        params.limit = params.limit || 1;
         console.log("Calling spotify " + endpoint + " " + params.q);
         return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.searchForArtist");
       });
