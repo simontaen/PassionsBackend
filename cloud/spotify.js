@@ -70,12 +70,20 @@ var _ = require("underscore"),
     // requires params.q, https://developer.spotify.com/web-api/search-item/
     // type, limit, offset
     // returns a promise with then(httpResponse), error(httpResponse)
-    searchForArtist: function(params) {
+    searchForArtist: function(params, parseArtist) {
       var endpoint = "search/";
-      params.type = "artist";
-      params.limit = params.limit || 1;
-      console.log("Calling spotify " + endpoint + " " + params.q);
-      return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.searchForArtist");
+
+      // call lfm for name correction
+      return lfm.getCorrection({
+        artist: params.q
+      }, parseArtist).then(function(parseArtist) {
+        // get the updated name
+        params.q = parseArtist.get("name");
+        params.type = "artist";
+        params.limit = params.limit || 1;
+        console.log("Calling spotify " + endpoint + " " + params.q);
+        return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.searchForArtist");
+      });
     },
 
 

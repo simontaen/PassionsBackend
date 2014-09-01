@@ -16,7 +16,7 @@ module.exports = function(config, lfm) {
       spotify.searchForArtist({
         q: parseArtist.get("name"),
         limit: 1
-      }).then(function(httpResponse) {
+      }, parseArtist).then(function(httpResponse) {
         parseArtist.set("spotifyId", httpResponse.data.artists.items[0].id);
         return spotify.updateTotalAlbumsOfArtist(parseArtist);
       }).then(res.success, res.error);
@@ -24,37 +24,5 @@ module.exports = function(config, lfm) {
       res.success();
     }
   });
-
-
-  /*
-  // save an array of album names to the artists "album" property
-  function processLfmAlbums(albums, parseArtist) {
-    var albumsMap = _.groupBy(albums, 'name');
-    parseArtist.set("albums", albumsMap);
-    // var albumNames = [];
-    // _.each(albums, function(album) {
-    //   albumNames.push(album.name);
-    // });
-    // parseArtist.set("albums", albumNames);
-  };
-
-  Parse.Cloud.beforeSave("Artist2", function(req, res) {
-    lfm.getAlbumsForArtist({
-      artist: req.object.get("name")
-    },
-
-    function(httpResponse) {
-      processAlbums(httpResponse.data.topalbums.album, req.object);
-      // cleanup name: this creates a duplicate entry for every falsely names artist
-      // req.object.set("name", httpResponse.data.topalbums["@attr"].artist);
-      res.success();
-    },
-
-    function(httpResponse) {
-      console.log(httpResponse.text);
-      res.error("lfm.getAlbumsForArtist failed");
-    });
-  });
-  */
 
 };
