@@ -44,10 +44,11 @@ var _ = require("underscore");
 
     // Return a new promise that is resolved when all are finished
     return Parse.Promise.when(promises).then(function() {
+      var albums = _.groupBy(completeAlbums, 'id');
       // set albums on artist
-      console.log("TOTAL ALBUMS: " + _.size(completeAlbums));
-      parseArtist.set("albums", _.groupBy(completeAlbums, 'id'));
-      return Parse.Promise.as(parseArtist);;
+      parseArtist.set("albums", albums);
+      console.log("Found " + _.size(albums) + " Albums!");
+      return Parse.Promise.as(parseArtist);
     });
   };
 
@@ -98,7 +99,6 @@ var _ = require("underscore");
           return wrappedHttpRequest(nextUrl).then(processor);
         } else {
           // we are done, all albums are known, get the complete infos
-          console.log("Found " + _.size(albums) + " Albums!");
           return fetchAlbumInfo(albums, parseArtist);
         }
       };
