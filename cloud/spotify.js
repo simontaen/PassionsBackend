@@ -114,10 +114,22 @@ var _ = require("underscore"),
         // https://developer.spotify.com/web-api/search-item/
         return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.fetchSpotifyArtist").
         then(function(httpResponse) {
-          var spotifyArtist = findExactMatch(httpResponse.data.artists.items, parseArtist.get("name")),
-            spotifyId = spotifyArtist ? spotifyArtist.id : httpResponse.data.artists.items[0].id;
+          var exactMatch = findExactMatch(httpResponse.data.artists.items, parseArtist.get("name")),
+            // get the first of the delivered artists as a default
+            spotifyA = exactMatch || httpResponse.data.artists.items[0],
+            artistImgs = []; // big to small
 
-          parseArtist.set("spotifyId", spotifyId);
+          if (spotifyA) {
+            parseArtist.set("spotifyId", spotifyA.id);
+
+            if (spotifyA.images) {
+              _.each(spotifyA.images, function(image) {
+                artistImgs.push(image.url || "");
+              });
+              parseArtist.set("images", artistImgs);
+            }
+          }
+
           return Parse.Promise.as(parseArtist);
         });
       });

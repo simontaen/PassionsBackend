@@ -80,8 +80,6 @@ function findNewAlbumsForArtist(parseArtist, status) {
 module.exports = function(config) {
   // 15 minute timeout
 
-  // curl -X POST   -H "X-Parse-Application-Id: nCQQ7cw92dCJJoH1cwbEv5ZBFmsEyFgSlVfmljp9"   -H "X-Parse-Master-Key: 5iM8ff4mv3rHgq7iXQQEFgVXldqDHZOegM36qcyx"   -H "Content-Type: application/json"   -d '{"plan":"paid"}'   https://api.parse.com/1/jobs/findNewAlbums
-
   Parse.Cloud.job("findNewAlbums", function(req, status) {
     // https://parse.com/docs/cloud_code_guide#jobs
     var counter = 0, //
