@@ -67,10 +67,16 @@ function findNewAlbumsForArtist(parseArtist, status) {
       //check release date -> must be recent
       console.log("Newest Album " + newestAlbum.name + " for Artist " + parseArtist.name);
 
+      var pushQuery = new Parse.Query(Parse.Installation);
+      pushQuery.contains('channels', 'allFavArtists');
+      pushQuery.contains('favArtists', parseArtist)
 
-
-      // send push
-      console.log("DEBUG: Sending push message");
+      Parse.Push.send({
+        where: pushQuery, // Set our Installation query
+        data: {
+          alert: "New Album by " + parseArtist.name + "!"
+        }
+      });
 
       // Set the  job's progress status
       status.message("NEW ALBUMS for " + counter + " artists!");
