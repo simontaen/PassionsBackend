@@ -41,7 +41,7 @@
         if (httpResponse.data.corrections.correction) {
           parseArtist.set("name", httpResponse.data.corrections.correction.artist.name);
           mbid = httpResponse.data.corrections.correction.artist.mbid;
-          if (mbid && mbid != "") {
+          if (!!mbid) {
             parseArtist.set("lfmId", mbid);
           }
         }
