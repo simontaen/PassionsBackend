@@ -6,7 +6,7 @@ var _ = require("underscore"),
   spotify = require('cloud/spotify.js');
 
 // return UTC timestamp
-function normalizeDate(date, precision) {
+function normalizeDate(date) {
   var splitted = date.split("-");
   // Date.UTC(year, month, day[, hours[, minutes[, seconds[,ms]]]]) / Date.UTC(1970, 0, 1) = 0
   return Date.UTC(splitted[0] || 1970, splitted[1] || 0, splitted[2] || 1);
@@ -14,15 +14,16 @@ function normalizeDate(date, precision) {
 
 // find newest albums in array
 function findNewestAlbum(albums) {
-  var newestAlbum;
+  var newestAlbum, newestAlbumUTC = 0;
 
   _.each(albums, function(albumArray) {
     var album = albumArray[0];
     album.utc = normalizeDate(album.release_date);
 
     // cache if newer
-    if (album.utc > (newestAlbum.utc || 0)) {
+    if (album.utc > newestAlbumUTC) {
       newestAlbum = album;
+      newestAlbumUTC = newestAlbum ? newestAlbum.utc || 0 : 0;
     }
   });
 
@@ -51,7 +52,7 @@ function findNewAlbumsForArtist(parseArtist, status) {
       counter += 1;
       return Parse.Promise.as(parseArtist);
     }
-    
+
   }).then(function(parseArtist) {
     if (parseArtist && totalAlbums != parseArtist.get("totalAlbums")) {
       // all albums are set
