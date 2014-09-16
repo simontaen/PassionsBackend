@@ -3,18 +3,22 @@
 
 var _ = require("underscore"),
   //lfm = require('cloud/lastFm.js'),
-  spotify = require('cloud/spotify.js');
+  spotify = require('cloud/spotify.js'),
+  defaultYear = 1000,
+  defaultMonth = 0,
+  defaultDay = 1,
+  defaultUTC = Date.UTC(defaultYear, defaultMonth, defaultDay);
 
-// return UTC timestamp
+// return UTC timestamp, never null
 function normalizeDate(date) {
   var splitted = date.split("-");
-  // Date.UTC(year, month, day[, hours[, minutes[, seconds[,ms]]]]) / Date.UTC(1970, 0, 1) = 0
-  return Date.UTC(splitted[0] || 1970, splitted[1] || 0, splitted[2] || 1);
+  // Date.UTC(year, month, day[, hours[, minutes[, seconds[,ms]]]])
+  return Date.UTC(splitted[0] || defaultYear, splitted[1] || defaultMonth, splitted[2] || defaultDay);
 }
 
 // find newest albums in array
 function findNewestAlbum(albums) {
-  var newestAlbum, newestAlbumUTC = 0;
+  var newestAlbum, newestAlbumUTC = defaultUTC;
 
   _.each(albums, function(albumArray) {
     var album = albumArray[0];
@@ -23,7 +27,7 @@ function findNewestAlbum(albums) {
     // cache if newer
     if (album.utc > newestAlbumUTC) {
       newestAlbum = album;
-      newestAlbumUTC = newestAlbum ? newestAlbum.utc || 0 : 0;
+      newestAlbumUTC = album.utc;
     }
   });
 
