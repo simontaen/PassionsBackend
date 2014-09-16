@@ -53,7 +53,7 @@ var _ = require("underscore"),
       var albums = _.groupBy(completeAlbums, 'id');
       // set albums on artist
       parseArtist.set("albums", albums);
-      console.log("Found " + _.size(albums) + " Albums for Artist " + parseArtist.name);
+      console.log("Found " + _.size(albums) + " Albums for Artist " + parseArtist.get("name"));
       return Parse.Promise.as(parseArtist);
     });
   }
