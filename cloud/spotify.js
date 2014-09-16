@@ -53,7 +53,7 @@ var _ = require("underscore"),
       var albums = _.groupBy(completeAlbums, 'id');
       // set albums on artist
       parseArtist.set("albums", albums);
-      console.log("Found " + _.size(albums) + " Albums!");
+      console.log("Found " + _.size(albums) + " Albums for Artist " + parseArtist.name);
       return Parse.Promise.as(parseArtist);
     });
   }
@@ -152,6 +152,7 @@ var _ = require("underscore"),
           // call next url recursivly
           return wrappedHttpRequest(nextUrl, undefined, "spotify.fetchAllAlbumsForArtist").then(processor);
         } else {
+          console.log("0) Existing number of Albums " + _.size(albums) + " for Artist " + parseArtist.name);
           // we are done, all albums are known, get the complete infos
           return fetchAlbumInfo(albums, parseArtist);
         }

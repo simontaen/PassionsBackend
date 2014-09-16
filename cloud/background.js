@@ -65,7 +65,7 @@ function findNewAlbumsForArtist(parseArtist, status) {
       var newestAlbum = findNewestAlbum(parseArtist.get("albums"));
 
       //check release date -> must be recent
-      console.log("NEWEST ALBUM: " + newestAlbum.name);
+      console.log("Newest Album " + newestAlbum.name + " for Artist " + parseArtist.name);
 
 
 
