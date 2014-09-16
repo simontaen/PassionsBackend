@@ -150,7 +150,7 @@ var _ = require("underscore"),
 
         if (data.limit + data.offset < data.total && nextUrl) {
           // call next url recursivly
-          return wrappedHttpRequest(nextUrl, {}, "spotify.fetchAllAlbumsForArtist").then(processor);
+          return wrappedHttpRequest(nextUrl, undefined, "spotify.fetchAllAlbumsForArtist").then(processor);
         } else {
           // we are done, all albums are known, get the complete infos
           return fetchAlbumInfo(albums, parseArtist);
