@@ -1,6 +1,5 @@
 'use strict';
-
-var _ = require("underscore");
+/* global Parse */
 
 (function() {
 
@@ -22,7 +21,7 @@ var _ = require("underscore");
       caller ? console.error(caller + " failed") : console.error(params.method + " failed");
       console.error(httpResponse.text);
     });
-  };
+  }
 
   module.exports = {
 
@@ -37,7 +36,7 @@ var _ = require("underscore");
       console.log("Calling Last.fm artist.getCorrection for artist=" + params.artist);
 
       return wrappedHttpRequest(params, "lfm.fetchCorrection").then(function(httpResponse) {
-        var mbid = undefined;
+        var mbid;
         // Take the correction if it exists
         if (httpResponse.data.corrections.correction) {
           parseArtist.set("name", httpResponse.data.corrections.correction.artist.name);

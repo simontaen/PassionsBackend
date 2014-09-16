@@ -1,7 +1,8 @@
 'use strict';
+/* global Parse */
 
 var _ = require("underscore"),
-  lfm = require('cloud/lastFm.js'),
+  //lfm = require('cloud/lastFm.js'),
   spotify = require('cloud/spotify.js');
 
 // return UTC timestamp
@@ -9,7 +10,7 @@ function normalizeDate(date, precision) {
   var splitted = date.split("-");
   // Date.UTC(year, month, day[, hours[, minutes[, seconds[,ms]]]]) / Date.UTC(1970, 0, 1) = 0
   return Date.UTC(splitted[0] || 1970, splitted[1] || 0, splitted[2] || 1);
-};
+}
 
 // find newest albums in array
 function findNewestAlbum(albums) {
@@ -26,7 +27,7 @@ function findNewestAlbum(albums) {
   });
 
   return newestAlbum;
-};
+}
 
 // Checks for new albums (via total albums)
 // Fetches all albums if new available
@@ -74,7 +75,7 @@ function findNewAlbumsForArtist(parseArtist, status) {
     // save artist and return
     return parseArtist.save();
   });
-};
+}
 
 
 module.exports = function(config) {
@@ -82,9 +83,8 @@ module.exports = function(config) {
 
   Parse.Cloud.job("findNewAlbums", function(req, status) {
     // https://parse.com/docs/cloud_code_guide#jobs
-    var counter = 0, //
-      // Artist should be favorited by some users
-      query = (new Parse.Query("Artist")).exists("favByUsers");
+    // Artist should be favorited by some users
+    var query = (new Parse.Query("Artist")).exists("favByUsers");
 
     query.find().then(function(results) {
       var promises = [];

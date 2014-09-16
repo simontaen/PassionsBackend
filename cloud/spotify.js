@@ -1,4 +1,5 @@
 'use strict';
+/* global Parse */
 
 var _ = require("underscore"),
   lfm = require('cloud/lastFm.js');
@@ -11,7 +12,7 @@ var _ = require("underscore"),
 
   // find the exact artist name match in artist array
   function findExactMatch(items, artistName) {
-    var result = undefined;
+    var result;
     if (items) {
       _.each(items, function(item) {
         if (artistName === item.name) {
@@ -21,7 +22,7 @@ var _ = require("underscore"),
       });
     }
     return result;
-  };
+  }
 
   // For the passed albums, fetch the full album info
   // Set the albums propertiy with selected album values
@@ -55,7 +56,7 @@ var _ = require("underscore"),
       console.log("Found " + _.size(albums) + " Albums!");
       return Parse.Promise.as(parseArtist);
     });
-  };
+  }
 
   // return a string intented for logging
   function getParamsForLog(params) {
@@ -64,7 +65,7 @@ var _ = require("underscore"),
       result += params.q ? " " + params.q : "";
     }
     return result;
-  };
+  }
 
   /* ------------ Pure API calls ------------ */
 
@@ -78,7 +79,7 @@ var _ = require("underscore"),
       caller ? console.error(caller + " failed") : console.error(myUrl + " failed");
       console.error(httpResponse.text);
     });
-  };
+  }
 
   // requires id, https://developer.spotify.com/web-api/get-artists-albums/
   // album_type, country, limit, offset
@@ -87,7 +88,7 @@ var _ = require("underscore"),
     var endpoint = "artists/" + id + "/albums/";
     params.album_type = "album";
     return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.getAlbumsForArtist");
-  };
+  }
 
   module.exports = {
 
@@ -154,7 +155,7 @@ var _ = require("underscore"),
           // we are done, all albums are known, get the complete infos
           return fetchAlbumInfo(albums, parseArtist);
         }
-      };
+      }
 
       // initial call
       return getAlbumsForArtist(parseArtist.get("spotifyId"), {
