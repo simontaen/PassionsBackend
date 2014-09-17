@@ -22,6 +22,7 @@ var _ = require("underscore"),
       });
     }
     if (counter > 1) {
+      // TODO: present a sheet to the user that he must choose
       console.log("WARN: Found " + counter + " exact matches for Artist " + artistName + " on spotify.");
     }
     return result;
@@ -37,7 +38,7 @@ var _ = require("underscore"),
       promises.push(
       // https://developer.spotify.com/web-api/get-album/
       // call the link for the full album on every album, start immediatly
-      wrappedHttpRequest(album.href, {}, "spotify.fetchAlbumInfo").then(function(httpResponse) {
+      wrappedHttpRequest(album.href, undefined, "spotify.fetchAlbumInfo").then(function(httpResponse) {
         var newAlbum = {}, data = httpResponse.data;
         newAlbum.href = data.href;
         newAlbum.id = data.id;
@@ -124,6 +125,7 @@ var _ = require("underscore"),
 
           if (!spotifyA) {
             console.log("WARN: No exact match found for Artist " + parseArtist.get("name") + " out of " + _.size(httpResponse.data.artists.items) + ".");
+            // TODO: present a sheet to the user that he must choose
             // get the first of the delivered artists as a default
             spotifyA = httpResponse.data.artists.items[0];
           }

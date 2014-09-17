@@ -39,7 +39,7 @@ function findNewestAlbum(albums) {
 // Sends push notification for newest one
 function findNewAlbumsForArtist(parseArtist, status) {
   var totalAlbums = parseArtist.get("totalAlbums"), //
-    counter = 0;
+    noNewAlbumsCounter = 0;
 
   // for each artist, query for ONE album to update totalAlbums
   return spotify.fetchTotalAlbumsOfArtist(parseArtist).then(function(parseArtist) {
@@ -49,11 +49,11 @@ function findNewAlbumsForArtist(parseArtist, status) {
       return spotify.fetchAllAlbumsForArtist(parseArtist);
 
     } else {
-      if (counter % 5 === 0) {
+      if (noNewAlbumsCounter % 5 === 0) {
         // Set the  job's progress status
-        status.message(counter + " artists have 0 new albums.");
+        status.message(noNewAlbumsCounter + " artists have 0 new albums.");
       }
-      counter += 1;
+      noNewAlbumsCounter += 1;
       return Parse.Promise.as(parseArtist);
     }
 
@@ -61,10 +61,10 @@ function findNewAlbumsForArtist(parseArtist, status) {
     if (parseArtist && totalAlbums != parseArtist.get("totalAlbums")) {
       // all albums are set
 
-      // find newest album
-      // TODO: might want to checkcheck release date -> must be recent
+      // You could check to see if it's recent
       var newestAlbum = findNewestAlbum(parseArtist.get("albums")),
-        pushQuery = new Parse.Query(Parse.Installation);
+        pushQuery = new Parse.Query(Parse.Installation),
+        newAlbumsCounter = 0;
 
       console.log("Newest Album " + newestAlbum.name + " for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
 
@@ -72,15 +72,14 @@ function findNewAlbumsForArtist(parseArtist, status) {
       pushQuery.equalTo('favArtists', parseArtist.id);
 
       Parse.Push.send({
-        where: pushQuery, // Set our Installation query
+        where: pushQuery,
         data: {
           alert: "New Album by " + parseArtist.get("name") + "!"
         }
       });
 
-      // Set the  job's progress status
-      status.message("NEW ALBUMS for " + counter + " artists!");
-      counter += 1;
+      status.message("NEW ALBUMS for " + newAlbumsCounter + " artists!");
+      newAlbumsCounter += 1;
     }
 
     // save artist and return
@@ -89,7 +88,7 @@ function findNewAlbumsForArtist(parseArtist, status) {
 }
 
 
-module.exports = function(config) {
+module.exports = function(/* config */) {
   // 15 minute timeout
 
   Parse.Cloud.job("findNewAlbums", function(req, status) {
@@ -107,12 +106,10 @@ module.exports = function(config) {
       return Parse.Promise.when(promises);
 
     }).then(function() {
-      // promise of each, all artists are processed
-      // Set the job's success status
+      // all artists are processed
       status.success("findNewAlbums completed successfully");
 
     }, function(error) {
-      // Set the job's error status
       status.error(error);
 
     });
