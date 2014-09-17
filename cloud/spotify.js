@@ -116,9 +116,14 @@ var _ = require("underscore"),
         return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.fetchSpotifyArtist").
         then(function(httpResponse) {
           var exactMatch = findExactMatch(httpResponse.data.artists.items, parseArtist.get("name")),
-            // get the first of the delivered artists as a default
-            spotifyA = exactMatch || httpResponse.data.artists.items[0],
+            spotifyA = exactMatch,
             artistImgs = []; // big to small
+
+          if (!spotifyA) {
+            console.log("WARN: No exact match found for Artist " + parseArtist.get("name") + ". Found " + _.size(httpResponse.data.artists.items));
+            // get the first of the delivered artists as a default
+            spotifyA = httpResponse.data.artists.items[0];
+          }
 
           if (spotifyA) {
             parseArtist.set("spotifyId", spotifyA.id);
