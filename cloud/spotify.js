@@ -12,14 +12,17 @@ var _ = require("underscore"),
 
   // find the exact artist name match in artist array
   function findExactMatch(items, artistName) {
-    var result;
+    var result, counter = 0;
     if (items) {
       _.each(items, function(item) {
         if (artistName === item.name) {
           result = item;
-          return;
+          counter++;
         }
       });
+    }
+    if (counter > 1) {
+      console.log("WARN: Found " + counter + " exact matches for Artist " + artistName + " on spotify.");
     }
     return result;
   }
@@ -120,7 +123,7 @@ var _ = require("underscore"),
             artistImgs = []; // big to small
 
           if (!spotifyA) {
-            console.log("WARN: No exact match found for Artist " + parseArtist.get("name") + ". Found " + _.size(httpResponse.data.artists.items));
+            console.log("WARN: No exact match found for Artist " + parseArtist.get("name") + " out of " + _.size(httpResponse.data.artists.items) + ".");
             // get the first of the delivered artists as a default
             spotifyA = httpResponse.data.artists.items[0];
           }
