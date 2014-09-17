@@ -1,8 +1,7 @@
 'use strict';
 /* global Parse */
 
-var //lfm = require('cloud/lastFm.js'),
-  spotify = require('cloud/spotify.js');
+var spotify = require('cloud/spotify.js');
 
 module.exports = function(/* config */) {
   // 3 seconds timeout

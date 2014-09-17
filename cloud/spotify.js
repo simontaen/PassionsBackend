@@ -1,8 +1,7 @@
 'use strict';
 /* global Parse */
 
-var _ = require("underscore"),
-  lfm = require('cloud/lastFm.js');
+var _ = require("underscore");
 
 (function() {
 
@@ -104,45 +103,39 @@ var _ = require("underscore"),
     // takes the first spotify result if no exact match is found
     // returns a promise with then(parseArtist), error(httpResponse)
     fetchSpotifyArtist: function(parseArtist) {
-      var endpoint = "search/";
-
-      // call lfm for name correction
-      return lfm.fetchCorrection({
-        artist: parseArtist.get("name")
-      }, parseArtist).then(function(parseArtist) {
-        var params = {
+      var endpoint = "search/",
+        params = {
           // get the updated name
           q: parseArtist.get("name"),
           type: "artist"
         };
 
-        // https://developer.spotify.com/web-api/search-item/
-        return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.fetchSpotifyArtist").
-        then(function(httpResponse) {
-          var exactMatch = findExactMatch(httpResponse.data.artists.items, parseArtist.get("name")),
-            spotifyA = exactMatch,
-            artistImgs = []; // big to small
+      // https://developer.spotify.com/web-api/search-item/
+      return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.fetchSpotifyArtist").
+      then(function(httpResponse) {
+        var exactMatch = findExactMatch(httpResponse.data.artists.items, parseArtist.get("name")),
+          spotifyA = exactMatch,
+          artistImgs = []; // big to small
 
-          if (!spotifyA) {
-            console.log("WARN: No exact match found for Artist " + parseArtist.get("name") + " out of " + _.size(httpResponse.data.artists.items) + ".");
-            // TODO: present a sheet to the user that he must choose
-            // get the first of the delivered artists as a default
-            spotifyA = httpResponse.data.artists.items[0];
+        if (!spotifyA) {
+          console.log("WARN: No exact match found for Artist " + parseArtist.get("name") + " out of " + _.size(httpResponse.data.artists.items) + ".");
+          // TODO: present a sheet to the user that he must choose
+          // get the first of the delivered artists as a default
+          spotifyA = httpResponse.data.artists.items[0];
+        }
+
+        if (spotifyA) {
+          parseArtist.set("spotifyId", spotifyA.id);
+
+          if (spotifyA.images) {
+            _.each(spotifyA.images, function(image) {
+              artistImgs.push(image.url || "");
+            });
+            parseArtist.set("images", artistImgs);
           }
+        }
 
-          if (spotifyA) {
-            parseArtist.set("spotifyId", spotifyA.id);
-
-            if (spotifyA.images) {
-              _.each(spotifyA.images, function(image) {
-                artistImgs.push(image.url || "");
-              });
-              parseArtist.set("images", artistImgs);
-            }
-          }
-
-          return Parse.Promise.as(parseArtist);
-        });
+        return Parse.Promise.as(parseArtist);
       });
     },
 

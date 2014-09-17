@@ -2,7 +2,6 @@
 /* global Parse */
 
 var _ = require("underscore"),
-  //lfm = require('cloud/lastFm.js'),
   spotify = require('cloud/spotify.js'),
   defaultYear = 1000,
   defaultMonth = 0,
