@@ -66,10 +66,10 @@ function findNewAlbumsForArtist(parseArtist, status) {
       var newestAlbum = findNewestAlbum(parseArtist.get("albums")),
         pushQuery = new Parse.Query(Parse.Installation);
 
-      console.log("Newest Album " + newestAlbum.name + " for Artist " + parseArtist.get("name"));
+      console.log("Newest Album " + newestAlbum.name + " for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
 
-      pushQuery.contains('channels', 'allFavArtists');
-      pushQuery.contains('favArtists', parseArtist.id);
+      pushQuery.equalTo('channels', 'allFavArtists');
+      pushQuery.equalTo('favArtists', parseArtist.id);
 
       Parse.Push.send({
         where: pushQuery, // Set our Installation query
