@@ -99,7 +99,7 @@ var _ = require("underscore");
 
   // returns a promise with then(httpResponse), error(httpResponse)
   function wrappedHttpRequest(myUrl, params, caller) {
-    console.log("Calling " + myUrl + getParamsForLog(params) + " from " + caller);
+    //console.log("Calling " + myUrl + getParamsForLog(params) + " from " + caller);
     return Parse.Cloud.httpRequest({
       url: myUrl,
       params: params,

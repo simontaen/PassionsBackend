@@ -114,7 +114,8 @@ module.exports = function(/* config */) {
       status.success("findNewAlbums completed successfully");
 
     }, function(error) {
-      status.error(error);
+      console.error("ERROR: " + error.code + " " + error.message);
+      status.error("ERROR: findNewAlbums");
 
     });
   });
