@@ -27,36 +27,61 @@ var _ = require("underscore");
     return result;
   }
 
+  function createOrUpdateAlbum(data) {
+    var Album = Parse.Object.extend("Album");
+    var query = new Parse.Query(Album);
+    query.equalTo("spotifyId", data.id);
+
+    query.find().then(function(results) {
+      var parseAlbum;
+      if (results.length === 0) {
+        // create one
+        parseAlbum = new Album();
+        parseAlbum.set("spotifyId", data.id);
+
+      } else if (results.length === 1) {
+        // get the found album
+        parseAlbum = results[0];
+
+      } else if (results.length > 1) {
+        // uh oh not good
+        return Parse.Promise.error("ERROR: Too many albums found (" + results.length + ") for spotifyId=" + data.id);
+      }
+
+      // update values
+      parseAlbum.set("href", data.href);
+      parseAlbum.set("name", data.name);
+      parseAlbum.set("release_date", data.release_date);
+      parseAlbum.set("release_date_precision", data.release_date_precision);
+
+      return parseAlbum.save();
+    });
+  }
+
   // For the passed albums, fetch the full album info
   // Set the albums propertiy with selected album values
   function fetchAlbumInfo(albums, parseArtist) {
     var promises = [],
-      completeAlbums = [];
+      albumIds = [];
 
     _.each(albums, function(album) {
       promises.push(
       // https://developer.spotify.com/web-api/get-album/
       // call the link for the full album on every album, start immediatly
       wrappedHttpRequest(album.href, undefined, "spotify.fetchAlbumInfo").then(function(httpResponse) {
-        var newAlbum = {}, data = httpResponse.data;
-        newAlbum.href = data.href;
-        newAlbum.id = data.id;
-        newAlbum.name = data.name;
-        newAlbum.release_date = data.release_date;
-        newAlbum.release_date_precision = data.release_date_precision;
-
+        return createOrUpdateAlbum(httpResponse.data);
+      }).then(function(parseAlbum) {
         // cache the new album and return successfully
-        completeAlbums.push(newAlbum);
+        albumIds.push(parseAlbum.id);
         return Parse.Promise.as();
       }));
     });
 
     // Return a new promise that is resolved when all are finished
     return Parse.Promise.when(promises).then(function() {
-      var albums = _.groupBy(completeAlbums, 'id');
       // set albums on artist
-      parseArtist.set("albums", albums);
-      console.log("Found " + _.size(albums) + " Albums for Artist " + parseArtist.get("name"));
+      parseArtist.set("albums", albumIds);
+      console.log("Found " + albumIds.length + " Albums for Artist " + parseArtist.get("name"));
       return Parse.Promise.as(parseArtist);
     });
   }
