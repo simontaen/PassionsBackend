@@ -48,6 +48,11 @@ function findNewAlbumsForArtist(parseArtist, status) {
       return spotify.fetchAllAlbumsForArtist(parseArtist);
 
     } else {
+      if (!parseArtist.get("albums")) {
+        // do not return the promise, just fetch the albums
+        spotify.fetchAllAlbumsForArtist(parseArtist);
+      }
+      
       if (noNewAlbumsCounter % 5 === 0) {
         // Set the  job's progress status
         status.message(noNewAlbumsCounter + " artists have 0 new albums.");
