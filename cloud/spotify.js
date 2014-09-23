@@ -221,7 +221,7 @@ var _ = require("underscore");
           if (parseArtist.get("totalAlbums") != httpResponse.data.total) {
             parseArtist.set("totalAlbums", httpResponse.data.total);
           }
-          // we are done, all albums are known, store them in parse
+          // we are done, all albums are known (simplified), store them in parse
           // optionally fetch full album details (performance!)
           return processAlbumInfo(albums, parseArtist, fetchFullAlbum);
         }

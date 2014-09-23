@@ -48,7 +48,7 @@ function findNewAlbumsForArtist(parseArtist, status) {
     var diffAlbums = parseArtist.get("totalAlbums") - totalAlbums;
     if (diffAlbums > 0) {
       console.log("Artist " + parseArtist.get("name") + " has " + diffAlbums + " new Albums, fetching them.");
-      // query for all albums if changed
+      // fetch full album details (I need the release date to find the newest)
       return spotify.fetchAllAlbumsForArtist(parseArtist, true);
     }
     // nothing to do (we could have less albums, but when does that happen?)
@@ -91,8 +91,11 @@ module.exports = function( /* config */ ) {
 
   Parse.Cloud.job("findNewAlbums", function(req, status) {
     // https://parse.com/docs/cloud_code_guide#jobs
+    var query = new Parse.Query("Artist");
     // Artist should be favorited by some users
-    var query = (new Parse.Query("Artist")).exists("favByUsers");
+    query.exists("favByUsers"); 
+    // Artist should have totalAlbums (aka fetchFullAlbums did run)
+    query.exists("totalAlbums");
 
     query.find().then(function(results) {
       var promises = [];
@@ -115,8 +118,9 @@ module.exports = function( /* config */ ) {
 
   Parse.Cloud.job("fetchFullAlbums", function(req, status) {
     // for all artists without "albums"
+    // this is only executed initially when the artists has just been created
     if (!fetchFullAlbumsRunning) {
-      // fetch simplified album
+      // fetch full album details (I need the release date in the CollectionView for sorting)
       var query = (new Parse.Query("Artist")).doesNotExist("albums");
       query.find().then(function(results) {
         var promises = [];
