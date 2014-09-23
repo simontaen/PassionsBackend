@@ -49,21 +49,25 @@ var _ = require("underscore");
       }
 
       // update values
-      if (parseAlbum.get("href") != data.href) {
+      if ( !! data.href && parseAlbum.get("href") != data.href) {
         parseAlbum.set("href", data.href);
         didUpdate = true;
       }
-      if (parseAlbum.get("name") != data.name) {
+      if ( !! data.name && parseAlbum.get("name") != data.name) {
         parseAlbum.set("name", data.name);
         didUpdate = true;
       }
-      if (parseAlbum.get("release_date") != data.release_date) {
+      if ( !! data.release_date && parseAlbum.get("release_date") != data.release_date) {
         parseAlbum.set("release_date", data.release_date);
         didUpdate = true;
       }
-      if (parseAlbum.get("release_date_precision") != data.release_date_precision) {
+      if ( !! data.release_date_precision && parseAlbum.get("release_date_precision") != data.release_date_precision) {
         parseAlbum.set("release_date_precision", data.release_date_precision);
         didUpdate = true;
+      }
+      if ( !! data.images && parseAlbum.get("images") != data.images) {
+        var result = setImagesFromRecordOnParseObject(data, parseAlbum);
+        didUpdate = didUpdate || result;
       }
 
       if (didUpdate) {
@@ -73,9 +77,11 @@ var _ = require("underscore");
     });
   }
 
-  // For the passed albums, fetch the full album info
+  // For the passed albums, store them on parse
+  // pass in fetchFullAlbum to get the full album info (performance!)
   // Set the albums propertiy on parseArtist with album id's
-  function fetchAlbumInfo(albums, parseArtist) {
+  // returns a promise with then(parseArtist), error(?)
+  function processAlbumInfo(albums, parseArtist, fetchFullAlbum) {
     var promises = [],
       albumIds = [];
 
@@ -83,10 +89,16 @@ var _ = require("underscore");
       promises.push(
       // https://developer.spotify.com/web-api/get-album/
       // call the link for the full album on every album, start immediatly
-      wrappedHttpRequest(album.href, undefined, "spotify.fetchAlbumInfo").then(function(httpResponse) {
-        // ask parse
-        return createOrUpdateAlbum(httpResponse.data);
-      }).then(function(parseAlbum) {
+
+      function() {
+        if (fetchFullAlbum) {
+          return wrappedHttpRequest(album.href, undefined, "spotify.processAlbumInfo").then(function(httpResponse) {
+            return createOrUpdateAlbum(httpResponse.data);
+          });
+        }
+        return createOrUpdateAlbum(album);
+
+      }().then(function(parseAlbum) {
         // cache the new album and return successfully
         albumIds.push(parseAlbum.id);
         return Parse.Promise.as();
@@ -115,7 +127,7 @@ var _ = require("underscore");
 
   // returns a promise with then(httpResponse), error(httpResponse)
   function wrappedHttpRequest(myUrl, params, caller) {
-    console.debug("Calling " + myUrl + getParamsForLog(params) + " from " + caller);
+    console.log("Calling " + myUrl + getParamsForLog(params) + " from " + caller);
     return Parse.Cloud.httpRequest({
       url: myUrl,
       params: params,
@@ -132,6 +144,18 @@ var _ = require("underscore");
     var endpoint = "artists/" + id + "/albums/";
     params.album_type = "album";
     return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.getAlbumsForArtist");
+  }
+
+
+  function setImagesFromRecordOnParseObject(rec, parseObj) {
+    var imgs = []; // big to small
+    if (rec.images) {
+      _.each(rec.images, function(image) {
+        imgs.push(image.url || "");
+      });
+      parseObj.set("images", imgs);
+      return true;
+    }
   }
 
   module.exports = {
@@ -155,8 +179,7 @@ var _ = require("underscore");
       return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.fetchSpotifyArtist").
       then(function(httpResponse) {
         var exactMatch = findExactMatch(httpResponse.data.artists.items, parseArtist.get("name")),
-          spotifyA = exactMatch,
-          artistImgs = []; // big to small
+          spotifyA = exactMatch;
 
         if (!spotifyA) {
           console.log("WARN: No exact match found for Artist " + parseArtist.get("name") + " out of " + _.size(httpResponse.data.artists.items) + ".");
@@ -167,22 +190,18 @@ var _ = require("underscore");
 
         if (spotifyA) {
           parseArtist.set("spotifyId", spotifyA.id);
-
-          if (spotifyA.images) {
-            _.each(spotifyA.images, function(image) {
-              artistImgs.push(image.url || "");
-            });
-            parseArtist.set("images", artistImgs);
-          }
+          setImagesFromRecordOnParseObject(spotifyA, parseArtist);
         }
 
         return Parse.Promise.as(parseArtist);
       });
     },
 
-    // query for ALL albums of the artist and the full album info
+    // query for ALL albums of the artist
+    // pass in fetchFullAlbum to get the full album info (performance!)
+    // https://developer.spotify.com/web-api/object-model/#artist-object-full
     // returns a promise with then(parseArtist), error(?)
-    fetchAllAlbumsForArtist: function(parseArtist) {
+    fetchAllAlbumsForArtist: function(parseArtist, fetchFullAlbum) {
       var albums;
 
       // cache the results and call "next"
@@ -196,8 +215,13 @@ var _ = require("underscore");
           // call next url recursivly
           return wrappedHttpRequest(nextUrl, undefined, "spotify.fetchAllAlbumsForArtist").then(processor);
         } else {
-          // we are done, all albums are known, get the complete infos
-          return fetchAlbumInfo(albums, parseArtist);
+          // update if different
+          if (parseArtist.get("totalAlbums") != httpResponse.data.total) {
+            parseArtist.set("totalAlbums", httpResponse.data.total);
+          }
+          // we are done, all albums are known, store them in parse
+          // optionally fetch full album details (performance!)
+          return processAlbumInfo(albums, parseArtist, fetchFullAlbum);
         }
       }
 

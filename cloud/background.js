@@ -46,20 +46,7 @@ function findNewAlbumsForArtist(parseArtist, status) {
     if (diffAlbums > 0) {
       console.log("Artist " + parseArtist.get("name") + " has " + diffAlbums + " new Albums, fetching them.");
       // query for all albums if changed
-      return spotify.fetchAllAlbumsForArtist(parseArtist);
-
-    } else if (!parseArtist.get("albums")) {
-      console.log("Artist " + parseArtist.get("name") + " does NOT have Albums, fetching them.");
-      // this fetches and saves the albums
-      return spotify.fetchAllAlbumsForArtist(parseArtist).then(function(parseArtist) {
-        // spotify never saves the artist, need to save the artist for "albums" here
-        return parseArtist.save();
-      }).then(function( /* parseArtist */ ) {
-        // don't pass the parseArtist here, we don't want the next then doing anything
-        // therefore it won't save the artist, which is why we did it before
-        return Parse.Promise.as();
-      });
-
+      return spotify.fetchAllAlbumsForArtist(parseArtist, true);
     }
     // nothing to do (we could have less albums, but when does that happen?)
     return Parse.Promise.as();

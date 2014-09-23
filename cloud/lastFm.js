@@ -7,7 +7,7 @@
   var apiKey = "aed3367b0133ab707cb4e5b6b04da3e7";
 
   /* ------------ Pure API calls ------------ */
-  
+
   // returns a promise with then(httpResponse), error(httpResponse)
   function wrappedHttpRequest(params, caller) {
     params.api_key = apiKey;
@@ -41,7 +41,7 @@
         if (httpResponse.data.corrections.correction) {
           parseArtist.set("name", httpResponse.data.corrections.correction.artist.name);
           mbid = httpResponse.data.corrections.correction.artist.mbid;
-          if (!!mbid) {
+          if ( !! mbid) {
             parseArtist.set("lfmId", mbid);
           }
         }

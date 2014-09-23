@@ -12,12 +12,12 @@ module.exports = function(/* config */) {
 
     if (!parseArtist.get("spotifyId")) {
       // we are creating an artist
-      // TODO: we might have to query for all album info here already
-      // instead of only in the background job
       spotify.fetchSpotifyArtist(parseArtist).then(function(parseArtist) {
         // TODO: we could have more than one match, let the user decide
         // TODO: what if different users match differently? -> version 2.0
-        return spotify.fetchTotalAlbumsOfArtist(parseArtist);
+        // fetch all albums but only the simplified version
+        // TODO: this times out easily, move to background task and just start it here.
+        return spotify.fetchAllAlbumsForArtist(parseArtist, false); // call background task instead
       }).then(res.success, res.error);
     } else {
       res.success();
