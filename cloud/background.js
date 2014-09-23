@@ -122,7 +122,10 @@ module.exports = function( /* config */ ) {
         var promises = [];
         _.each(results, function(parseArtist) {
           console.log("INFO: fetchSimplifiedAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
-          promises.push(spotify.fetchAllAlbumsForArtist(parseArtist, false));
+          promises.push(
+          spotify.fetchAllAlbumsForArtist(parseArtist, false).then(function(parseArtist) {
+            return parseArtist.save();
+          }));
         });
         return Parse.Promise.when(promises);
 
