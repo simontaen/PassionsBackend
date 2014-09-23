@@ -37,28 +37,35 @@ function findNewestAlbum(albums) {
 // Fetches all albums if new available
 // Sends push notification for newest one
 function findNewAlbumsForArtist(parseArtist, status) {
-  var totalAlbums = parseArtist.get("totalAlbums"), //
-    noNewAlbumsCounter = 0;
+  var totalAlbums = parseArtist.get("totalAlbums");
 
   // for each artist, query for ONE album to update totalAlbums
   return spotify.fetchTotalAlbumsOfArtist(parseArtist).then(function(parseArtist) {
     // compare the total number of albums
-    if (totalAlbums != parseArtist.get("totalAlbums")) {
+    var diffAlbums = parseArtist.get("totalAlbums") - totalAlbums;
+    if (diffAlbums > 0) {
+      console.log("Artist " + parseArtist.get("name") + " has " + diffAlbums + " new Albums, fetching them.");
       // query for all albums if changed
       return spotify.fetchAllAlbumsForArtist(parseArtist);
 
     } else if (!parseArtist.get("albums")) {
-      console.log("Artist " + parseArtist.get("name") + " does not have albums, fetching them.");
+      console.log("Artist " + parseArtist.get("name") + " does NOT have Albums, fetching them.");
+      // this fetches and saves the albums
       return spotify.fetchAllAlbumsForArtist(parseArtist).then(function(parseArtist) {
+        // spotify never saves the artist, need to save the artist for "albums" here
         return parseArtist.save();
       }).then(function( /* parseArtist */ ) {
+        // don't pass the parseArtist here, we don't want the next then doing anything
+        // therefore it won't save the artist, which is why we did it before
         return Parse.Promise.as();
       });
 
     }
+    // nothing to do (we could have less albums, but when does that happen?)
     return Parse.Promise.as();
 
   }).then(function(parseArtist) {
+    // TODO: what if there is more than one new Album?
     if (parseArtist && totalAlbums != parseArtist.get("totalAlbums")) {
       // all albums are set
 
@@ -68,6 +75,8 @@ function findNewAlbumsForArtist(parseArtist, status) {
         newAlbumsCounter = 0;
 
       console.log("Newest Album " + newestAlbum.name + " for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
+      status.error("New Albums for " + newAlbumsCounter + " artists!");
+      newAlbumsCounter += 1;
 
       pushQuery.equalTo('channels', 'allFavArtists');
       pushQuery.equalTo('favArtists', parseArtist.id);
@@ -79,12 +88,10 @@ function findNewAlbumsForArtist(parseArtist, status) {
         }
       });
 
-      status.message("NEW ALBUMS for " + newAlbumsCounter + " artists!");
-      newAlbumsCounter += 1;
-
-      // save artist and return
+      // save artist and return ("albums" and "totalAlbums" have changed)
       return parseArtist.save();
     }
+    // nothing to do
     return Parse.Promise.as(parseArtist);
   });
 }

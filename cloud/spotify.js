@@ -27,13 +27,17 @@ var _ = require("underscore");
     return result;
   }
 
+  // try to get the album record from parse
+  // if not existent, create it. Update it with passed values
+  // returns parseAlbum (saved if neccessary)
   function createOrUpdateAlbum(data) {
     var Album = Parse.Object.extend("Album");
     var query = new Parse.Query(Album);
     query.equalTo("spotifyId", data.id);
 
     return query.first().then(function(parseAlbum) {
-      var thisAlbum;
+      var thisAlbum,
+      didUpdate = false;
 
       if (parseAlbum) {
         thisAlbum = parseAlbum;
@@ -41,20 +45,36 @@ var _ = require("underscore");
         // create one
         parseAlbum = new Album();
         parseAlbum.set("spotifyId", data.id);
+        didUpdate = true;
       }
 
       // update values
-      parseAlbum.set("href", data.href);
-      parseAlbum.set("name", data.name);
-      parseAlbum.set("release_date", data.release_date);
-      parseAlbum.set("release_date_precision", data.release_date_precision);
+      if (parseAlbum.get("href") != data.href) {
+        parseAlbum.set("href", data.href);
+        didUpdate = true;
+      }
+      if (parseAlbum.get("name") != data.name) {
+        parseAlbum.set("name", data.name);
+        didUpdate = true;
+      }
+      if (parseAlbum.get("release_date") != data.release_date) {
+        parseAlbum.set("release_date", data.release_date);
+        didUpdate = true;
+      }
+      if (parseAlbum.get("release_date_precision") != data.release_date_precision) {
+        parseAlbum.set("release_date_precision", data.release_date_precision);
+        didUpdate = true;
+      }
 
-      return parseAlbum.save();
+      if (didUpdate) {
+        return parseAlbum.save();
+      }
+      return Parse.Promise.as(parseAlbum);
     });
   }
 
   // For the passed albums, fetch the full album info
-  // Set the albums propertiy with selected album values
+  // Set the albums propertiy on parseArtist with album id's
   function fetchAlbumInfo(albums, parseArtist) {
     var promises = [],
       albumIds = [];
@@ -64,6 +84,7 @@ var _ = require("underscore");
       // https://developer.spotify.com/web-api/get-album/
       // call the link for the full album on every album, start immediatly
       wrappedHttpRequest(album.href, undefined, "spotify.fetchAlbumInfo").then(function(httpResponse) {
+        // ask parse
         return createOrUpdateAlbum(httpResponse.data);
       }).then(function(parseAlbum) {
         // cache the new album and return successfully
@@ -74,7 +95,7 @@ var _ = require("underscore");
 
     // Return a new promise that is resolved when all are finished
     return Parse.Promise.when(promises).then(function() {
-      // set albums on artist
+      // set albums on artist (just overwrite)
       parseArtist.set("albums", albumIds);
       console.log("Found " + albumIds.length + " Albums for Artist " + parseArtist.get("name"));
       return Parse.Promise.as(parseArtist);
@@ -94,7 +115,7 @@ var _ = require("underscore");
 
   // returns a promise with then(httpResponse), error(httpResponse)
   function wrappedHttpRequest(myUrl, params, caller) {
-    //console.log("Calling " + myUrl + getParamsForLog(params) + " from " + caller);
+    console.debug("Calling " + myUrl + getParamsForLog(params) + " from " + caller);
     return Parse.Cloud.httpRequest({
       url: myUrl,
       params: params,
