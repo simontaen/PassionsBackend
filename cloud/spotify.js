@@ -32,20 +32,15 @@ var _ = require("underscore");
     var query = new Parse.Query(Album);
     query.equalTo("spotifyId", data.id);
 
-    query.find().then(function(results) {
-      var parseAlbum;
-      if (results.length === 0) {
+    return query.first().then(function(parseAlbum) {
+      var thisAlbum;
+
+      if (parseAlbum) {
+        thisAlbum = parseAlbum;
+      } else {
         // create one
         parseAlbum = new Album();
         parseAlbum.set("spotifyId", data.id);
-
-      } else if (results.length === 1) {
-        // get the found album
-        parseAlbum = results[0];
-
-      } else if (results.length > 1) {
-        // uh oh not good
-        return Parse.Promise.error("ERROR: Too many albums found (" + results.length + ") for spotifyId=" + data.id);
       }
 
       // update values

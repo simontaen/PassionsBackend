@@ -47,19 +47,16 @@ function findNewAlbumsForArtist(parseArtist, status) {
       // query for all albums if changed
       return spotify.fetchAllAlbumsForArtist(parseArtist);
 
-    } else {
-      if (!parseArtist.get("albums")) {
-        // do not return the promise, just fetch the albums
-        spotify.fetchAllAlbumsForArtist(parseArtist);
-      }
-      
-      if (noNewAlbumsCounter % 5 === 0) {
-        // Set the  job's progress status
-        status.message(noNewAlbumsCounter + " artists have 0 new albums.");
-      }
-      noNewAlbumsCounter += 1;
-      return Parse.Promise.as(parseArtist);
+    } else if (!parseArtist.get("albums")) {
+      console.log("Artist " + parseArtist.get("name") + " does not have albums, fetching them.");
+      return spotify.fetchAllAlbumsForArtist(parseArtist).then(function(parseArtist) {
+        return parseArtist.save();
+      }).then(function( /* parseArtist */ ) {
+        return Parse.Promise.as();
+      });
+
     }
+    return Parse.Promise.as();
 
   }).then(function(parseArtist) {
     if (parseArtist && totalAlbums != parseArtist.get("totalAlbums")) {
@@ -84,15 +81,16 @@ function findNewAlbumsForArtist(parseArtist, status) {
 
       status.message("NEW ALBUMS for " + newAlbumsCounter + " artists!");
       newAlbumsCounter += 1;
-    }
 
-    // save artist and return
-    return parseArtist.save();
+      // save artist and return
+      return parseArtist.save();
+    }
+    return Parse.Promise.as(parseArtist);
   });
 }
 
 
-module.exports = function(/* config */) {
+module.exports = function( /* config */ ) {
   // 15 minute timeout
 
   Parse.Cloud.job("findNewAlbums", function(req, status) {
@@ -114,7 +112,8 @@ module.exports = function(/* config */) {
       status.success("findNewAlbums completed successfully");
 
     }, function(error) {
-      console.error("ERROR: " + error.code + " " + error.message);
+      console.error("ERROR: " + error);
+      alert(error.message);
       status.error("ERROR: findNewAlbums");
 
     });
