@@ -30,7 +30,7 @@ var _ = require("underscore");
   // try to get the album record from parse
   // if not existent, create it. Update it with passed values
   // returns parseAlbum (saved if neccessary)
-  function createOrUpdateAlbum(data) {
+  function createOrUpdateAlbum(data, parseArtist) {
     var Album = Parse.Object.extend("Album");
     var query = new Parse.Query(Album);
     query.equalTo("spotifyId", data.id);
@@ -45,6 +45,7 @@ var _ = require("underscore");
         // create one
         parseAlbum = new Album();
         parseAlbum.set("spotifyId", data.id);
+        parseAlbum.set("artistId", parseArtist.id);
         didUpdate = true;
       }
 
@@ -93,10 +94,10 @@ var _ = require("underscore");
       function() {
         if (fetchFullAlbum) {
           return wrappedHttpRequest(album.href, undefined, "spotify.processAlbumInfo").then(function(httpResponse) {
-            return createOrUpdateAlbum(httpResponse.data);
+            return createOrUpdateAlbum(httpResponse.data, parseArtist);
           });
         }
-        return createOrUpdateAlbum(album);
+        return createOrUpdateAlbum(album, parseArtist);
 
       }().then(function(parseAlbum) {
         // cache the new album and return successfully
