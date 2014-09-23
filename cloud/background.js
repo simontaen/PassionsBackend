@@ -6,7 +6,10 @@ var _ = require("underscore"),
   defaultYear = 1000,
   defaultMonth = 0,
   defaultDay = 1,
-  defaultUTC = Date.UTC(defaultYear, defaultMonth, defaultDay);
+  defaultUTC = Date.UTC(defaultYear, defaultMonth, defaultDay),
+  // global var to check if bkg job is running
+  // not the best solution to be honest
+  fetchSimplifiedAlbumsRunning = false;
 
 // return UTC timestamp, never null
 function normalizeDate(date) {
@@ -83,7 +86,6 @@ function findNewAlbumsForArtist(parseArtist, status) {
   });
 }
 
-
 module.exports = function( /* config */ ) {
   // 15 minute timeout
 
@@ -95,10 +97,8 @@ module.exports = function( /* config */ ) {
     query.find().then(function(results) {
       var promises = [];
       _.each(results, function(parseArtist) {
-        // Start the find immediately and add its promise to the list.
         promises.push(findNewAlbumsForArtist(parseArtist, status));
       });
-      // Return a new promise that is resolved when all are finished.
       return Parse.Promise.when(promises);
 
     }).then(function() {
@@ -111,6 +111,35 @@ module.exports = function( /* config */ ) {
       status.error("ERROR: findNewAlbums");
 
     });
+  });
+
+  Parse.Cloud.job("fetchSimplifiedAlbums", function(req, status) {
+    // for all artists without "albums"
+    if (!fetchSimplifiedAlbumsRunning) {
+      // fetch simplified album
+      var query = (new Parse.Query("Artist")).doesNotExist("albums");
+      query.find().then(function(results) {
+        var promises = [];
+        _.each(results, function(parseArtist) {
+          console.log("INFO: fetchSimplifiedAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
+          promises.push(spotify.fetchAllAlbumsForArtist(parseArtist, false));
+        });
+        return Parse.Promise.when(promises);
+
+      }).then(function() {
+        // all artists are processed
+        fetchSimplifiedAlbumsRunning = false;
+        status.success("fetchSimplifiedAlbums completed successfully");
+
+      }, function(error) {
+        fetchSimplifiedAlbumsRunning = false;
+        console.error("ERROR: " + error);
+        alert(error.message);
+        status.error("ERROR: fetchSimplifiedAlbums");
+
+      });
+    }
+
   });
 
 };

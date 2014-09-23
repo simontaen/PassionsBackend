@@ -3,7 +3,7 @@
 
 var spotify = require('cloud/spotify.js');
 
-module.exports = function(/* config */) {
+module.exports = function(config) {
   // 3 seconds timeout
 
   // fetch the spotify artist and fetch total numbers of albums
@@ -15,10 +15,23 @@ module.exports = function(/* config */) {
       spotify.fetchSpotifyArtist(parseArtist).then(function(parseArtist) {
         // TODO: we could have more than one match, let the user decide
         // TODO: what if different users match differently? -> version 2.0
-        // fetch all albums but only the simplified version
-        // TODO: this times out easily, move to background task and just start it here.
-        return spotify.fetchAllAlbumsForArtist(parseArtist, false); // call background task instead
+
+        // call background job to fetch all simplified albums
+        Parse.Cloud.httpRequest({
+          url: "https://api.parse.com/1/jobs/fetchSimplifiedAlbums",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Parse-Application-Id": config.appId,
+            "X-Parse-Master-Key": config.masterKey
+          },
+          body: {}
+        });
+        
+        // return the artist immediatly
+        return Parse.Promise.as(parseArtist);
       }).then(res.success, res.error);
+      
     } else {
       res.success();
     }
