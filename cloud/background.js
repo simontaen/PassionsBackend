@@ -9,7 +9,7 @@ var _ = require("underscore"),
   defaultUTC = Date.UTC(defaultYear, defaultMonth, defaultDay),
   // global var to check if bkg job is running
   // not the best solution to be honest
-  fetchSimplifiedAlbumsRunning = false;
+  fetchFullAlbumsRunning = false;
 
 // return UTC timestamp, never null
 function normalizeDate(date) {
@@ -113,17 +113,17 @@ module.exports = function( /* config */ ) {
     });
   });
 
-  Parse.Cloud.job("fetchSimplifiedAlbums", function(req, status) {
+  Parse.Cloud.job("fetchFullAlbums", function(req, status) {
     // for all artists without "albums"
-    if (!fetchSimplifiedAlbumsRunning) {
+    if (!fetchFullAlbumsRunning) {
       // fetch simplified album
       var query = (new Parse.Query("Artist")).doesNotExist("albums");
       query.find().then(function(results) {
         var promises = [];
         _.each(results, function(parseArtist) {
-          console.log("INFO: fetchSimplifiedAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
+          console.log("INFO: fetchFullAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
           promises.push(
-          spotify.fetchAllAlbumsForArtist(parseArtist, false).then(function(parseArtist) {
+          spotify.fetchAllAlbumsForArtist(parseArtist, true).then(function(parseArtist) {
             return parseArtist.save();
           }));
         });
@@ -131,14 +131,14 @@ module.exports = function( /* config */ ) {
 
       }).then(function() {
         // all artists are processed
-        fetchSimplifiedAlbumsRunning = false;
-        status.success("fetchSimplifiedAlbums completed successfully");
+        fetchFullAlbumsRunning = false;
+        status.success("fetchFullAlbums completed successfully");
 
       }, function(error) {
-        fetchSimplifiedAlbumsRunning = false;
+        fetchFullAlbumsRunning = false;
         console.error("ERROR: " + error);
         alert(error.message);
-        status.error("ERROR: fetchSimplifiedAlbums");
+        status.error("ERROR: fetchFullAlbums");
 
       });
     }

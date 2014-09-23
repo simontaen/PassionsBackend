@@ -18,7 +18,7 @@ module.exports = function(config) {
 
         // call background job to fetch all simplified albums
         Parse.Cloud.httpRequest({
-          url: "https://api.parse.com/1/jobs/fetchSimplifiedAlbums",
+          url: "https://api.parse.com/1/jobs/fetchFullAlbums",
           method: "POST",
           headers: {
             "Content-Type": "application/json",
