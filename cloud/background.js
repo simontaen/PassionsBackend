@@ -109,9 +109,11 @@ module.exports = function( /* config */ ) {
       status.success("findNewAlbums completed successfully");
 
     }, function(error) {
-      console.error("ERROR: " + error);
-      alert(error.message);
-      status.error("ERROR: findNewAlbums");
+      console.error("ERROR: findNewAlbums: " + error);
+      if (error) {
+        alert(error.message);
+      }
+      status.error("ERROR: findNewAlbums: " + error);
 
     });
   });
@@ -140,9 +142,11 @@ module.exports = function( /* config */ ) {
 
       }, function(error) {
         fetchFullAlbumsRunning = false;
-        console.error("ERROR: " + error);
-        alert(error.message);
-        status.error("ERROR: fetchFullAlbums");
+        console.error("ERROR: fetchFullAlbums: " + error);
+        if (error) {
+          alert(error.message);
+        }
+        status.error("ERROR: fetchFullAlbums: " + error);
 
       });
     }
