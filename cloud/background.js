@@ -70,7 +70,7 @@ function findNewAlbumsForArtist(parseArtist, status) {
         newAlbumsCounter = 0;
 
       console.log("Newest Album " + newestAlbum.name + " for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
-      status.error("New Albums for " + newAlbumsCounter + " artists!");
+      console.log("New Albums for " + newAlbumsCounter + " artists!");
       newAlbumsCounter += 1;
 
       pushQuery.equalTo('channels', 'allFavArtists');
