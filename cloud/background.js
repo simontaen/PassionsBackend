@@ -65,13 +65,12 @@ function findNewAlbumsForArtist(parseArtist, status) {
       // all albums are set
 
       // You could check to see if it's recent
-      var newestAlbum = findNewestAlbum(parseAlbums),
+      var newestParseAlbum = findNewestAlbum(parseAlbums),
         pushQuery = new Parse.Query(Parse.Installation),
-        newAlbumsCounter = 0;
+        newestAlbumName = newestParseAlbum.get("name"),
+        artistName = parseArtist.get("name");
 
-      console.log("Newest Album " + newestAlbum.name + " for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
-      console.log("New Albums for " + newAlbumsCounter + " artists!");
-      newAlbumsCounter += 1;
+      console.log("Newest Album " + newestAlbumName + " for Artist " + artistName + " (" + parseArtist.id + ")");
 
       pushQuery.equalTo('channels', 'allFavArtists');
       pushQuery.equalTo('favArtists', parseArtist.id);
@@ -79,11 +78,11 @@ function findNewAlbumsForArtist(parseArtist, status) {
       Parse.Push.send({
         where: pushQuery,
         data: {
-          alert: "New Album by " + parseArtist.get("name") + "!"
+          alert: "New Album " + newestAlbumName + " by " + artistName + "!"
         }
       });
 
-      // save artist and return ("albums" and "totalAlbums" have changed)
+      // save artist and return ("totalAlbums" have changed)
       return parseArtist.save();
     }
     // nothing to do
@@ -126,6 +125,7 @@ module.exports = function( /* config */ ) {
     // this is only executed initially when the artists has just been created
     if (!fetchFullAlbumsRunning) {
       // fetch full album details (I need the release date in the CollectionView for sorting)
+      // this condition works because both fetchFullAlbums and findNewAlbums fetches all album details
       var query = (new Parse.Query("Artist")).doesNotExist("totalAlbums");
       query.find().then(function(results) {
         var promises = [];
