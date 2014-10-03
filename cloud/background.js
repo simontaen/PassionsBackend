@@ -24,7 +24,7 @@ function findNewestAlbum(parseAlbums) {
 
   _.each(parseAlbums, function(parseAlbum) {
     var utc = parseAlbum.get("utc");
-    
+
     if (!utc) {
       utc = normalizeDate(parseAlbum.get("release_date"));
       parseAlbum.set("utc", utc);
@@ -63,23 +63,33 @@ function findNewAlbumsForArtist(parseArtist) {
     // TODO: what if there is more than one new Album?
     if (parseArtist && totalAlbums != parseArtist.get("totalAlbums")) {
       // all albums are set
-
       // You could check to see if it's recent
+
       var newestParseAlbum = findNewestAlbum(parseAlbums),
+        userQuery = new Parse.Query(Parse.User),
         pushQuery = new Parse.Query(Parse.Installation),
         newestAlbumName = newestParseAlbum.get("name"),
         artistName = parseArtist.get("name");
 
       console.log("Newest Album " + newestAlbumName + " for Artist " + artistName + " (" + parseArtist.id + ")");
 
-      pushQuery.equalTo('channels', 'allFavArtists');
-      pushQuery.equalTo('favArtists', parseArtist.id);
+      userQuery.equalTo('favArtists', parseArtist.id);
+      userQuery.find().then(function(parseUsers) {
+        var usersInstallationIds = [];
+        _.each(parseUsers, function(parseUser) {
+          usersInstallationIds.push(parseUser.get("installation"));
+        });
+        pushQuery.containedIn('objectId', usersInstallationIds);
 
-      Parse.Push.send({
-        where: pushQuery,
-        data: {
-          alert: "New Album " + newestAlbumName + " by " + artistName + "!"
-        }
+        pushQuery.equalTo('channels', 'allFavArtists');
+
+        Parse.Push.send({
+          where: pushQuery,
+          data: {
+            alert: "New Album " + newestAlbumName + " by " + artistName + "!"
+          }
+        });
+
       });
 
       // save artist and return ("totalAlbums" have changed)
