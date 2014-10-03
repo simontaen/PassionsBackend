@@ -44,7 +44,7 @@ function findNewestAlbum(parseAlbums) {
 // Checks for new albums (via total albums)
 // Fetches all albums if new available
 // Sends push notification for newest one
-function findNewAlbumsForArtist(parseArtist, status) {
+function findNewAlbumsForArtist(parseArtist) {
   var totalAlbums = parseArtist.get("totalAlbums");
 
   // for each artist, query for ONE album to update totalAlbums
@@ -102,7 +102,7 @@ module.exports = function( /* config */ ) {
     query.find().then(function(results) {
       var promises = [];
       _.each(results, function(parseArtist) {
-        promises.push(findNewAlbumsForArtist(parseArtist, status));
+        promises.push(findNewAlbumsForArtist(parseArtist));
       });
       return Parse.Promise.when(promises);
 
