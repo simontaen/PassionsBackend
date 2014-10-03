@@ -23,8 +23,13 @@ function findNewestAlbum(parseAlbums) {
   var newestAlbum, newestAlbumUTC = defaultUTC;
 
   _.each(parseAlbums, function(parseAlbum) {
-    var utc = normalizeDate(parseAlbum.get("release_date"));
-    parseAlbum.set("utc", utc);
+    var utc = parseAlbum.get("utc");
+    
+    if (!utc) {
+      utc = normalizeDate(parseAlbum.get("release_date"));
+      parseAlbum.set("utc", utc);
+      parseAlbum.save()
+    }
 
     // cache if newer
     if (utc > newestAlbumUTC) {
