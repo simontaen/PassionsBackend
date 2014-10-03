@@ -126,7 +126,7 @@ module.exports = function( /* config */ ) {
     // this is only executed initially when the artists has just been created
     if (!fetchFullAlbumsRunning) {
       // fetch full album details (I need the release date in the CollectionView for sorting)
-      var query = (new Parse.Query("Artist")).doesNotExist("albums");
+      var query = (new Parse.Query("Artist")).doesNotExist("totalAlbums");
       query.find().then(function(results) {
         var promises = [];
         _.each(results, function(parseArtist) {
