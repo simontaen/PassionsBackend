@@ -21,7 +21,7 @@ var _ = require("underscore");
       });
     }
     if (counter > 1) {
-      // TODO: present a sheet to the user that he must choose
+      // TODO: present a sheet to the user that he must choose the Artist
       console.log("WARN: Found " + counter + " exact matches for Artist " + artistName + " on spotify.");
     }
     return result;
@@ -185,7 +185,7 @@ var _ = require("underscore");
 
         if (!spotifyA) {
           console.log("WARN: No exact match found for Artist " + parseArtist.get("name") + " out of " + _.size(httpResponse.data.artists.items) + ".");
-          // TODO: present a sheet to the user that he must choose
+          // TODO: present a sheet to the user that we did not find the Artist
           // get the first of the delivered artists as a default
           spotifyA = httpResponse.data.artists.items[0];
         }

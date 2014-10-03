@@ -13,7 +13,6 @@ module.exports = function(config) {
     if (!parseArtist.get("spotifyId")) {
       // we are creating an artist
       spotify.fetchSpotifyArtist(parseArtist).then(function(parseArtist) {
-        // TODO: we could have more than one match, let the user decide
         // TODO: what if different users match differently? -> version 2.0
 
         // call background job to fetch all simplified albums

@@ -60,7 +60,7 @@ function findNewAlbumsForArtist(parseArtist) {
     return Parse.Promise.as();
 
   }).then(function(parseArtist, parseAlbums) {
-    // TODO: what if there is more than one new Album?
+    // There could be more than one new Album, but that would be coding for an exception
     if (parseArtist && totalAlbums != parseArtist.get("totalAlbums")) {
       // all albums are set
       // You could check to see if it's recent
