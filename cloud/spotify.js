@@ -81,10 +81,10 @@ var _ = require("underscore");
   // For the passed albums, store them on parse
   // pass in fetchFullAlbum to get the full album info (performance!)
   // Set the albums propertiy on parseArtist with album id's
-  // returns a promise with then(parseArtist), error(?)
+  // returns a promise with then(parseArtist, parseAlbums), error(?)
   function processAlbumInfo(albums, parseArtist, fetchFullAlbum) {
     var promises = [],
-      albumIds = [];
+      parseAlbums = [];
 
     _.each(albums, function(album) {
       promises.push(
@@ -101,7 +101,7 @@ var _ = require("underscore");
 
       }().then(function(parseAlbum) {
         // cache the new album and return successfully
-        albumIds.push(parseAlbum.id);
+        parseAlbums.push(parseAlbum);
         return Parse.Promise.as();
       }));
     });
@@ -109,9 +109,8 @@ var _ = require("underscore");
     // Return a new promise that is resolved when all are finished
     return Parse.Promise.when(promises).then(function() {
       // set albums on artist (just overwrite)
-      parseArtist.set("albums", albumIds);
-      console.log("Found " + albumIds.length + " Albums for Artist " + parseArtist.get("name"));
-      return Parse.Promise.as(parseArtist);
+      console.log("Found " + parseAlbums.length + " Albums for Artist " + parseArtist.get("name"));
+      return Parse.Promise.as(parseArtist, parseAlbums);
     });
   }
 

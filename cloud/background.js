@@ -18,18 +18,18 @@ function normalizeDate(date) {
   return Date.UTC(splitted[0] || defaultYear, splitted[1] || defaultMonth, splitted[2] || defaultDay);
 }
 
-// find newest albums in array
-function findNewestAlbum(albums) {
+// find newest album in array of parseAlbum
+function findNewestAlbum(parseAlbums) {
   var newestAlbum, newestAlbumUTC = defaultUTC;
 
-  _.each(albums, function(albumArray) {
-    var album = albumArray[0];
-    album.utc = normalizeDate(album.release_date);
+  _.each(parseAlbums, function(parseAlbum) {
+    var utc = normalizeDate(parseAlbum.get("release_date"));
+    parseAlbum.set("utc", utc);
 
     // cache if newer
-    if (album.utc > newestAlbumUTC) {
-      newestAlbum = album;
-      newestAlbumUTC = album.utc;
+    if (utc > newestAlbumUTC) {
+      newestAlbum = parseAlbum;
+      newestAlbumUTC = utc;
     }
   });
 
@@ -54,13 +54,13 @@ function findNewAlbumsForArtist(parseArtist, status) {
     // nothing to do (we could have less albums, but when does that happen?)
     return Parse.Promise.as();
 
-  }).then(function(parseArtist) {
+  }).then(function(parseArtist, parseAlbums) {
     // TODO: what if there is more than one new Album?
     if (parseArtist && totalAlbums != parseArtist.get("totalAlbums")) {
       // all albums are set
 
       // You could check to see if it's recent
-      var newestAlbum = findNewestAlbum(parseArtist.get("albums")),
+      var newestAlbum = findNewestAlbum(parseAlbums),
         pushQuery = new Parse.Query(Parse.Installation),
         newAlbumsCounter = 0;
 
