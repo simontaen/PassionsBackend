@@ -92,8 +92,6 @@ module.exports = function( /* config */ ) {
   Parse.Cloud.job("findNewAlbums", function(req, status) {
     // https://parse.com/docs/cloud_code_guide#jobs
     var query = new Parse.Query("Artist");
-    // Artist should be favorited by some users
-    query.exists("favByUsers"); 
     // Artist should have totalAlbums (aka fetchFullAlbums did run)
     query.exists("totalAlbums");
 
