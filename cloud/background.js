@@ -26,7 +26,7 @@ function findNewestAlbum(parseAlbums) {
     var utc = parseAlbum.get("utc");
 
     if (!utc) {
-      utc = normalizeDate(parseAlbum.get("release_date"));
+      utc = normalizeDate(parseAlbum.get("releaseDate"));
       parseAlbum.set("utc", utc);
       parseAlbum.save()
     }

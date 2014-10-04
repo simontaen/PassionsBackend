@@ -58,12 +58,12 @@ var _ = require("underscore");
         parseAlbum.set("name", data.name);
         didUpdate = true;
       }
-      if ( !! data.release_date && parseAlbum.get("release_date") != data.release_date) {
-        parseAlbum.set("release_date", data.release_date);
+      if ( !! data.release_date && parseAlbum.get("releaseDate") != data.release_date) {
+        parseAlbum.set("releaseDate", data.release_date);
         didUpdate = true;
       }
-      if ( !! data.release_date_precision && parseAlbum.get("release_date_precision") != data.release_date_precision) {
-        parseAlbum.set("release_date_precision", data.release_date_precision);
+      if ( !! data.release_date_precision && parseAlbum.get("releaseDatePrecision") != data.release_date_precision) {
+        parseAlbum.set("releaseDatePrecision", data.release_date_precision);
         didUpdate = true;
       }
       if ( !! data.images && parseAlbum.get("images") != data.images) {
