@@ -134,6 +134,7 @@ module.exports = function( /* config */ ) {
     // for all artists without "albums"
     // this is only executed initially when the artists has just been created
     if (!fetchFullAlbumsRunning) {
+      fetchFullAlbumsRunning = true;
       // fetch full album details (I need the release date in the CollectionView for sorting)
       // this condition works because both fetchFullAlbums and findNewAlbums fetches all album details
       var query = (new Parse.Query("Artist")).doesNotExist("totalAlbums");
@@ -163,6 +164,7 @@ module.exports = function( /* config */ ) {
 
       });
     }
+    status.error("ERROR: fetchFullAlbums: Job already running");
 
   });
 
