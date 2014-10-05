@@ -134,7 +134,7 @@ var _ = require("underscore");
       url: myUrl,
       params: params,
     }).fail(function(httpResponse) {
-      caller ? console.error(caller + " failed") : console.error(myUrl + " failed");
+      console.error((caller || myUrl) + " failed");
       console.error(httpResponse.text);
     });
   }
@@ -247,5 +247,5 @@ var _ = require("underscore");
       });
     }
 
-  }
+  };
 })();

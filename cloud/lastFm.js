@@ -18,7 +18,7 @@
       url: apiUrl,
       params: params,
     }).fail(function(httpResponse) {
-      caller ? console.error(caller + " failed") : console.error(params.method + " failed");
+      console.error((caller || params.method) + " failed");
       console.error(httpResponse.text);
     });
   }
@@ -49,5 +49,5 @@
       });
     }
 
-  }
+  };
 })();
