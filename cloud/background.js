@@ -131,14 +131,15 @@ module.exports = function( /* config */ ) {
   });
 
   Parse.Cloud.job("fetchFullAlbums", function(req, status) {
-    // for all artists without "albums"
-    // this is only executed initially when the artists has just been created
+    // TODO: 
+    status.success("testing fetchFullAlbums");
+    return;
+
     if (!fetchFullAlbumsRunning) {
       // TODO: how should I avoid multiple jobs running? Ask David!
       fetchFullAlbumsRunning = true;
-      // fetch full album details (I need the release date in the CollectionView for sorting)
-      // this condition works because both fetchFullAlbums and findNewAlbums fetches all album details
       var query = new Parse.Query("Artist")
+      // this is only executed initially when the artists has just been created
       query.equalTo("totalAlbums", undefined);
       
       return query.find().then(function(results) {
@@ -146,6 +147,7 @@ module.exports = function( /* config */ ) {
         _.each(results, function(parseArtist) {
           console.log("INFO: fetchFullAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
           promises.push(
+          // fetch full album details (I need the release date in the CollectionView for sorting)
           spotify.fetchAllAlbumsForArtist(parseArtist, true).then(function(parseArtist) {
             return parseArtist.save();
           }));
