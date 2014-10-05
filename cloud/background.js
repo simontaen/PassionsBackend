@@ -138,7 +138,9 @@ module.exports = function( /* config */ ) {
       fetchFullAlbumsRunning = true;
       // fetch full album details (I need the release date in the CollectionView for sorting)
       // this condition works because both fetchFullAlbums and findNewAlbums fetches all album details
-      var query = (new Parse.Query("Artist")).doesNotExist("totalAlbums");
+      var query = new Parse.Query("Artist")
+      query.equalTo("totalAlbums", undefined);
+      
       return query.find().then(function(results) {
         var promises = [];
         _.each(results, function(parseArtist) {
