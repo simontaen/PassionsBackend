@@ -10,8 +10,8 @@ var config = {
 	port: 3000,
 	api: 'v1',
 	apiDelim: '_',
-	appId: 'nCQQ7cw92dCJJoH1cwbEv5ZBFmsEyFgSlVfmljp9',
-	masterKey: '5iM8ff4mv3rHgq7iXQQEFgVXldqDHZOegM36qcyx'
+	appId: 'nLPKoK0wdW9csg2mTwwPkiGEDBh4AlU3f6il9qqQ',
+	masterKey: 'Mx6FjfJ4FYW6fi9Ra1G23AEcQuDgtm2xBH1yRhS7'
   },
 
   test: {
