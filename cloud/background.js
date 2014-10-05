@@ -131,12 +131,7 @@ module.exports = function( /* config */ ) {
   });
 
   Parse.Cloud.job("fetchFullAlbums", function(req, status) {
-    // TODO: remove this
-    status.success("testing fetchFullAlbums");
-    return;
-    
     // TODO: try to remove returns
-
     if (!fetchFullAlbumsRunning) {
       // TODO: how should I avoid multiple jobs running? Ask David!
       fetchFullAlbumsRunning = true;
