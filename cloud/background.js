@@ -28,7 +28,7 @@ function findNewestAlbum(parseAlbums) {
     if (!utc) {
       utc = normalizeDate(parseAlbum.get("releaseDate"));
       parseAlbum.set("utc", utc);
-      parseAlbum.save()
+      parseAlbum.save();
     }
 
     // cache if newer
@@ -138,7 +138,7 @@ module.exports = function( /* config */ ) {
     if (!fetchFullAlbumsRunning) {
       // TODO: how should I avoid multiple jobs running? Ask David!
       fetchFullAlbumsRunning = true;
-      var query = new Parse.Query("Artist")
+      var query = new Parse.Query("Artist");
       // this is only executed initially when the artists has just been created
       query.equalTo("totalAlbums", undefined);
       
