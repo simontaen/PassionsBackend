@@ -109,7 +109,7 @@ module.exports = function( /* config */ ) {
     // Artist should have totalAlbums (aka fetchFullAlbums did run)
     query.exists("totalAlbums");
 
-    query.find().then(function(results) {
+    return query.find().then(function(results) {
       var promises = [];
       _.each(results, function(parseArtist) {
         promises.push(findNewAlbumsForArtist(parseArtist));
@@ -118,14 +118,14 @@ module.exports = function( /* config */ ) {
 
     }).then(function() {
       // all artists are processed
-      status.success("findNewAlbums completed successfully");
+      return status.success("findNewAlbums completed successfully");
 
     }, function(error) {
       console.error("ERROR: findNewAlbums: " + error);
       if (error) {
         alert(error.message);
       }
-      status.error("ERROR: findNewAlbums: " + error);
+      return status.error("ERROR: findNewAlbums: " + error);
 
     });
   });
@@ -139,7 +139,7 @@ module.exports = function( /* config */ ) {
       // fetch full album details (I need the release date in the CollectionView for sorting)
       // this condition works because both fetchFullAlbums and findNewAlbums fetches all album details
       var query = (new Parse.Query("Artist")).doesNotExist("totalAlbums");
-      query.find().then(function(results) {
+      return query.find().then(function(results) {
         var promises = [];
         _.each(results, function(parseArtist) {
           console.log("INFO: fetchFullAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
@@ -153,7 +153,7 @@ module.exports = function( /* config */ ) {
       }).then(function() {
         // all artists are processed
         fetchFullAlbumsRunning = false;
-        status.success("fetchFullAlbums completed successfully");
+        return status.success("fetchFullAlbums completed successfully");
 
       }, function(error) {
         fetchFullAlbumsRunning = false;
@@ -161,11 +161,11 @@ module.exports = function( /* config */ ) {
         if (error) {
           alert(error.message);
         }
-        status.error("ERROR: fetchFullAlbums: " + error);
+        return status.error("ERROR: fetchFullAlbums: " + error);
 
       });
     }
-    status.error("ERROR: fetchFullAlbums: Job already running");
+    return status.error("ERROR: fetchFullAlbums: Job already running");
 
   });
 
