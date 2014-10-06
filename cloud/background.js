@@ -19,6 +19,7 @@ function normalizeDate(date) {
 }
 
 // find newest album in array of parseAlbum
+// then(parseArtist), error(parseArtist, error)
 function findNewestAlbum(parseAlbums) {
   var newestAlbum, newestAlbumUTC = defaultUTC;
 
@@ -44,6 +45,8 @@ function findNewestAlbum(parseAlbums) {
 // Checks for new albums (via total albums)
 // Fetches all albums if new available
 // Sends push notification for newest one
+// then(parseArtist),
+// error(httpResponse), error(parseAlbum, error), error(parseArtist, error)
 function findNewAlbumsForArtist(parseArtist) {
   var totalAlbums = parseArtist.get("totalAlbums");
 
@@ -100,6 +103,26 @@ function findNewAlbumsForArtist(parseArtist) {
   });
 }
 
+// do error handling
+function errorHandler(caller, status, errorOrObject, errorOrUndefined) {
+  var error = errorOrUndefined || errorOrObject,
+    msg = error;
+
+  if (error) {
+    // inspect the error for more info
+    if (error.message) {
+      msg = error.message + " (" + error.code + ")";
+    } else if (error.text) {
+      msg = error.text;
+    } // what else could error be?
+  }
+  msg = "ERROR: " + caller + ": " + msg
+
+  console.error(msg);
+  alert(msg);
+  status.error(msg);
+}
+
 module.exports = function( /* config */ ) {
   // 15 minute timeout
 
@@ -109,7 +132,7 @@ module.exports = function( /* config */ ) {
     // Artist should have totalAlbums (aka fetchFullAlbums did run)
     query.exists("totalAlbums");
 
-    return query.find().then(function(results) {
+    query.find().then(function(results) {
       var promises = [];
       _.each(results, function(parseArtist) {
         promises.push(findNewAlbumsForArtist(parseArtist));
@@ -118,28 +141,23 @@ module.exports = function( /* config */ ) {
 
     }).then(function() {
       // all artists are processed
-      return status.success("findNewAlbums completed successfully");
+      status.success("findNewAlbums completed successfully");
 
-    }, function(error) {
-      console.error("ERROR: findNewAlbums: " + error);
-      if (error) {
-        alert(error.message);
-      }
-      return status.error("ERROR: findNewAlbums: " + error);
+    }, function(errorOrObject, errorOrUndefined) {
+      errorHandler("findNewAlbums", status, errorOrObject, errorOrUndefined)
 
     });
   });
 
   Parse.Cloud.job("fetchFullAlbums", function(req, status) {
-    // TODO: try to remove returns
     if (!fetchFullAlbumsRunning) {
       // TODO: how should I avoid multiple jobs running? Ask David!
       fetchFullAlbumsRunning = true;
       var query = new Parse.Query("Artist");
       // this is only executed initially when the artists has just been created
       query.equalTo("totalAlbums", undefined);
-      
-      return query.find().then(function(results) {
+
+      query.find().then(function(results) {
         var promises = [];
         _.each(results, function(parseArtist) {
           console.log("INFO: fetchFullAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
@@ -154,19 +172,15 @@ module.exports = function( /* config */ ) {
       }).then(function() {
         // all artists are processed
         fetchFullAlbumsRunning = false;
-        return status.success("fetchFullAlbums completed successfully");
+        status.success("fetchFullAlbums completed successfully");
 
-      }, function(error) {
+      }, function(errorOrObject, errorOrUndefined) {
         fetchFullAlbumsRunning = false;
-        console.error("ERROR: fetchFullAlbums: " + error);
-        if (error) {
-          alert(error.message);
-        }
-        return status.error("ERROR: fetchFullAlbums: " + error);
+        errorHandler("fetchFullAlbums", status, errorOrObject, errorOrUndefined)
 
       });
     }
-    return status.error("ERROR: fetchFullAlbums: Job already running");
+    status.error("ERROR: fetchFullAlbums: Job already running");
 
   });
 

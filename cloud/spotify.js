@@ -29,7 +29,7 @@ var _ = require("underscore");
 
   // try to get the album record from parse
   // if not existent, create it. Update it with passed values
-  // returns parseAlbum (saved if neccessary)
+  // returns a promise with then(parseAlbum), error(parseAlbum, error)
   function createOrUpdateAlbum(data, parseArtist) {
     var Album = Parse.Object.extend("Album");
     var query = new Parse.Query(Album);
@@ -81,7 +81,8 @@ var _ = require("underscore");
   // For the passed albums, store them on parse
   // pass in fetchFullAlbum to get the full album info (performance!)
   // Set the albums propertiy on parseArtist with album id's
-  // returns a promise with then(parseArtist, parseAlbums), error(?)
+  // returns a promise with
+  // then(parseArtist, parseAlbums), error(httpResponse) or error(parseAlbum, error)
   function processAlbumInfo(albums, parseArtist, fetchFullAlbum) {
     var promises = [],
       parseAlbums = [];
@@ -148,7 +149,7 @@ var _ = require("underscore");
     return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.getAlbumsForArtist");
   }
 
-
+  // sets the image urls on the passed parseObj
   function setImagesFromRecordOnParseObject(rec, parseObj) {
     var imgs = []; // big to small
     if (rec.images) {
@@ -202,7 +203,8 @@ var _ = require("underscore");
     // query for ALL albums of the artist
     // pass in fetchFullAlbum to get the full album info (performance!)
     // https://developer.spotify.com/web-api/object-model/#artist-object-full
-    // returns a promise with then(parseArtist), error(?)
+    // returns a promise with
+    // then(parseArtist), error(httpResponse) or error(parseAlbum, error)
     fetchAllAlbumsForArtist: function(parseArtist, fetchFullAlbum) {
       var albums;
 
