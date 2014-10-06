@@ -150,37 +150,39 @@ module.exports = function( /* config */ ) {
   });
 
   Parse.Cloud.job("fetchFullAlbums", function(req, status) {
-    if (!fetchFullAlbumsRunning) {
-      // TODO: how should I avoid multiple jobs running? Ask David!
-      fetchFullAlbumsRunning = true;
-      var query = new Parse.Query("Artist");
-      // this is only executed initially when the artists has just been created
-      query.equalTo("totalAlbums", undefined);
+    // TODO: how should I avoid multiple jobs running? Ask David!
+    // if (!fetchFullAlbumsRunning) {
+    console.log("fetchFullAlbumsRunning " + fetchFullAlbumsRunning);
+    fetchFullAlbumsRunning = true;
+    
+    var query = new Parse.Query("Artist");
+    // this is only executed initially when the artists has just been created
+    query.equalTo("totalAlbums", undefined);
 
-      query.find().then(function(results) {
-        var promises = [];
-        _.each(results, function(parseArtist) {
-          console.log("INFO: fetchFullAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
-          promises.push(
-          // fetch full album details (I need the release date in the CollectionView for sorting)
-          spotify.fetchAllAlbumsForArtist(parseArtist, true).then(function(parseArtist) {
-            return parseArtist.save();
-          }));
-        });
-        return Parse.Promise.when(promises);
-
-      }).then(function() {
-        // all artists are processed
-        fetchFullAlbumsRunning = false;
-        status.success("fetchFullAlbums completed successfully");
-
-      }, function(errorOrObject, errorOrUndefined) {
-        fetchFullAlbumsRunning = false;
-        errorHandler("fetchFullAlbums", status, errorOrObject, errorOrUndefined)
-
+    query.find().then(function(results) {
+      var promises = [];
+      _.each(results, function(parseArtist) {
+        console.log("INFO: fetchFullAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
+        promises.push(
+        // fetch full album details (I need the release date in the CollectionView for sorting)
+        spotify.fetchAllAlbumsForArtist(parseArtist, true).then(function(parseArtist) {
+          return parseArtist.save();
+        }));
       });
-    }
-    status.error("ERROR: fetchFullAlbums: Job already running");
+      return Parse.Promise.when(promises);
+
+    }).then(function() {
+      // all artists are processed
+      fetchFullAlbumsRunning = false;
+      status.success("fetchFullAlbums completed successfully");
+
+    }, function(errorOrObject, errorOrUndefined) {
+      fetchFullAlbumsRunning = false;
+      errorHandler("fetchFullAlbums", status, errorOrObject, errorOrUndefined)
+
+    });
+    // }
+    // status.error("ERROR: fetchFullAlbums: Job already running");
 
   });
 
