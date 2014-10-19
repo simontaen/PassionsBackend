@@ -133,7 +133,31 @@ function errorHandler(caller, status, errorOrObject, errorOrUndefined) {
 
   console.error(msg);
   alert(msg);
-  status.error(msg);
+  if (status) {
+    status.error(msg);
+  }
+}
+
+function sendRefreshPushForInstallId(installId) {
+  var pushQuery = new Parse.Query(Parse.Installation);
+  pushQuery.equalTo('objectId', installId);
+  pushQuery.equalTo('channels', 'global');
+
+  console.log("Sending push to InstallationId=" + installId);
+
+  Parse.Push.send({
+    where: pushQuery,
+    data: {
+      alert: "Finished processing",
+      far: true
+    }
+  }).then(function() {
+    console.log("Push successful: InstallationId=" + installId);
+
+  }, function(error) {
+    errorHandler("Push failed: InstallationId=" + installId, undefined, error);
+
+  });
 }
 
 module.exports = function( /* config */ ) {
@@ -167,7 +191,6 @@ module.exports = function( /* config */ ) {
   });
 
   Parse.Cloud.job("fetchFullAlbums", function(req, status) {
-    // TODO: how should I avoid multiple jobs running? Ask David!
     // if (!fetchFullAlbumsRunning) {
     if (fetchFullAlbumsRunning) {
       alert("fetchFullAlbumsRunning " + fetchFullAlbumsRunning);
@@ -199,8 +222,17 @@ module.exports = function( /* config */ ) {
     }).then(function() {
       // all artists are processed
       fetchFullAlbumsRunning = false;
-      status.success("fetchFullAlbums completed successfully");
 
+      // send a push to inform the client
+      // you might need to track an array of interested installIds,
+      // if you run into problems with parallel execution
+      if (!!req.params.i) {
+        sendRefreshPushForInstallId(req.params.i);
+      }
+      
+      // close the task
+      status.success("fetchFullAlbums completed successfully");
+      
     }, function(errorOrObject, errorOrUndefined) {
       fetchFullAlbumsRunning = false;
       errorHandler("fetchFullAlbums", status, errorOrObject, errorOrUndefined);
