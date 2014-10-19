@@ -133,6 +133,8 @@ module.exports = function( /* config */ ) {
   Parse.Cloud.job("findNewAlbums", function(req, status) {
     // https://parse.com/docs/cloud_code_guide#jobs
     var query = new Parse.Query("Artist");
+    // Data provider id must exists
+    query.exists("spotifyId");
     // Artist should have totalAlbums (aka fetchFullAlbums did run)
     query.exists("totalAlbums");
 
@@ -166,6 +168,8 @@ module.exports = function( /* config */ ) {
     fetchFullAlbumsRunning = true;
 
     var query = new Parse.Query("Artist");
+    // Data provider id must exists
+    query.exists("spotifyId");
     // this is only executed initially when the artists has just been created
     query.equalTo("totalAlbums", undefined);
 
