@@ -3,6 +3,7 @@
 
 var _ = require("underscore"),
   spotify = require('cloud/spotify.js'),
+  iTunes = require('cloud/iTunes.js'),
   defaultYear = 1000,
   defaultMonth = 0,
   defaultDay = 1,
@@ -54,8 +55,9 @@ function findNewAlbumsForArtist(parseArtist, status) {
   return spotify.fetchTotalAlbumsOfArtist(parseArtist).then(function(parseArtist) {
     // compare the total number of albums
     var newTotalAlbums = parseArtist.get("totalAlbums"),
-     diffAlbums = newTotalAlbums - totalAlbums, msg;
-    
+      diffAlbums = newTotalAlbums - totalAlbums,
+      msg;
+
     if (diffAlbums > 0) {
       msg = "Processing " + newTotalAlbums + " Albums for Artist " + parseArtist.get("name") + ", has " + diffAlbums + " new.";
       status.message(msg);
@@ -83,8 +85,8 @@ function findNewAlbumsForArtist(parseArtist, status) {
       userQuery.equalTo('favArtists', parseArtist.id);
       userQuery.find().then(function(parseUsers) {
         var usersInstallationIds = [],
-        pushMsg = "New Album " + newestAlbumName + " by " + artistName + "!";
-        
+          pushMsg = "New Album " + newestAlbumName + " by " + artistName + "!";
+
         _.each(parseUsers, function(parseUser) {
           usersInstallationIds.push(parseUser.get("installation"));
         });
@@ -100,7 +102,7 @@ function findNewAlbumsForArtist(parseArtist, status) {
           }
         }).then(function() {
           console.log("Push successful: " + pushMsg);
-          
+
         }, function(error) {
           errorHandler("Push failed: " + pushMsg, status, error);
 
@@ -226,13 +228,13 @@ module.exports = function( /* config */ ) {
       // send a push to inform the client
       // you might need to track an array of interested installIds,
       // if you run into problems with parallel execution
-      if (!!req.params.i) {
+      if ( !! req.params.i) {
         sendRefreshPushForInstallId(req.params.i);
       }
-      
+
       // close the task
       status.success("fetchFullAlbums completed successfully");
-      
+
     }, function(errorOrObject, errorOrUndefined) {
       fetchFullAlbumsRunning = false;
       errorHandler("fetchFullAlbums", status, errorOrObject, errorOrUndefined);

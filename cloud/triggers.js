@@ -1,7 +1,8 @@
 'use strict';
 /* global Parse */
 
-var spotify = require('cloud/spotify.js');
+var spotify = require('cloud/spotify.js'),
+  iTunes = require('cloud/iTunes.js');
 
 module.exports = function(config) {
   // 3 seconds timeout
@@ -28,11 +29,11 @@ module.exports = function(config) {
         //   },
         //   body: {}
         // });
-        
+
         // return the artist immediatly
         return Parse.Promise.as(parseArtist);
       }).then(res.success, res.error);
-      
+
     } else {
       res.success();
     }
