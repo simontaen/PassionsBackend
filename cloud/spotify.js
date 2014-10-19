@@ -170,7 +170,7 @@ var _ = require("underscore");
     // query for Last.fm name correction, then search spotify
     // takes the first spotify result if no exact match is found
     // returns a promise with then(parseArtist), error(httpResponse)
-    fetchSpotifyArtist: function(parseArtist) {
+    fetchArtist: function(parseArtist) {
       var endpoint = "search/",
         params = {
           // get the updated name
@@ -179,7 +179,7 @@ var _ = require("underscore");
         };
 
       // https://developer.spotify.com/web-api/search-item/
-      return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.fetchSpotifyArtist").
+      return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.fetchArtist").
       then(function(httpResponse) {
         var exactMatch = findExactMatch(httpResponse.data.artists.items, parseArtist.get("name")),
           spotifyA = exactMatch;
