@@ -48,7 +48,82 @@ function findNewestAlbum(parseAlbums) {
 // Sends push notification for newest one
 // then(parseArtist),
 // error(httpResponse), error(parseAlbum, error), error(parseArtist, error)
-function findNewAlbumsForArtist(parseArtist, status) {
+function findNewAlbumsForArtistOnSpotify(parseArtist, status) {
+  var totalAlbums = parseArtist.get("totalAlbums");
+
+  // for each artist, query for ONE album to update totalAlbums
+  return spotify.fetchTotalAlbumsOfArtist(parseArtist).then(function(parseArtist) {
+    // compare the total number of albums
+    var newTotalAlbums = parseArtist.get("totalAlbums"),
+      diffAlbums = newTotalAlbums - totalAlbums,
+      msg;
+
+    if (diffAlbums > 0) {
+      msg = "Processing " + newTotalAlbums + " Albums for Artist " + parseArtist.get("name") + ", has " + diffAlbums + " new.";
+      status.message(msg);
+      console.log(msg);
+      // fetch full album details (I need the release date to find the newest)
+      return spotify.fetchAllAlbumsForArtist(parseArtist, true);
+    }
+    // nothing to do (we could have less albums, but when does that happen?)
+    return Parse.Promise.as();
+
+  }).then(function(parseArtist, parseAlbums) {
+    // There could be more than one new Album, but that would be coding for an exception
+    if (parseArtist && totalAlbums != parseArtist.get("totalAlbums")) {
+      // all albums are set
+      // You could check to see if it's recent
+
+      var newestParseAlbum = findNewestAlbum(parseAlbums),
+        userQuery = new Parse.Query(Parse.User),
+        pushQuery = new Parse.Query(Parse.Installation),
+        newestAlbumName = newestParseAlbum.get("name"),
+        artistName = parseArtist.get("name");
+
+      console.log("Newest Album " + newestAlbumName + " for Artist " + artistName + " (" + parseArtist.id + ")");
+
+      userQuery.equalTo('favArtists', parseArtist.id);
+      userQuery.find().then(function(parseUsers) {
+        var usersInstallationIds = [],
+          pushMsg = "New Album " + newestAlbumName + " by " + artistName + "!";
+
+        _.each(parseUsers, function(parseUser) {
+          usersInstallationIds.push(parseUser.get("installation"));
+        });
+        pushQuery.containedIn('objectId', usersInstallationIds);
+
+        pushQuery.equalTo('channels', 'allFavArtists');
+
+        Parse.Push.send({
+          where: pushQuery,
+          data: {
+            alert: pushMsg,
+            a: newestParseAlbum.id
+          }
+        }).then(function() {
+          console.log("Push successful: " + pushMsg);
+
+        }, function(error) {
+          errorHandler("Push failed: " + pushMsg, status, error);
+
+        });
+
+      });
+
+      // save artist and return ("totalAlbums" have changed)
+      return parseArtist.save();
+    }
+    // nothing to do
+    return Parse.Promise.as(parseArtist);
+  });
+}
+
+// Checks for new albums (via total albums)
+// Fetches all albums if new available
+// Sends push notification for newest one
+// then(parseArtist),
+// error(httpResponse), error(parseAlbum, error), error(parseArtist, error)
+function findNewAlbumsForArtistOniTunes(parseArtist, status) {
   var totalAlbums = parseArtist.get("totalAlbums");
 
   // for each artist, query for ONE album to update totalAlbums
@@ -178,7 +253,7 @@ module.exports = function( /* config */ ) {
       status.message("Processing " + _.size(results) + " Artists");
 
       _.each(results, function(parseArtist) {
-        promises.push(findNewAlbumsForArtist(parseArtist, status));
+        promises.push(findNewAlbumsForArtistOnSpotify(parseArtist, status));
       });
       return Parse.Promise.when(promises);
 
