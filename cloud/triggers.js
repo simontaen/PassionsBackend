@@ -18,16 +18,16 @@ module.exports = function(config) {
         // call background job to fetch all simplified albums
         // TODO: I need to get the installation here and send in the body
         // maybe I need to do this from the device
-        Parse.Cloud.httpRequest({
-          url: "https://api.parse.com/1/jobs/fetchFullAlbums",
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Parse-Application-Id": config.appId,
-            "X-Parse-Master-Key": config.masterKey
-          },
-          body: {}
-        });
+        // Parse.Cloud.httpRequest({
+        //   url: "https://api.parse.com/1/jobs/fetchFullAlbums",
+        //   method: "POST",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //     "X-Parse-Application-Id": config.appId,
+        //     "X-Parse-Master-Key": config.masterKey
+        //   },
+        //   body: {}
+        // });
         
         // return the artist immediatly
         return Parse.Promise.as(parseArtist);
