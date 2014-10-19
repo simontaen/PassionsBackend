@@ -82,7 +82,9 @@ function findNewAlbumsForArtist(parseArtist, status) {
 
       userQuery.equalTo('favArtists', parseArtist.id);
       userQuery.find().then(function(parseUsers) {
-        var usersInstallationIds = [];
+        var usersInstallationIds = [],
+        pushMsg = "New Album " + newestAlbumName + " by " + artistName + "!";
+        
         _.each(parseUsers, function(parseUser) {
           usersInstallationIds.push(parseUser.get("installation"));
         });
@@ -93,8 +95,15 @@ function findNewAlbumsForArtist(parseArtist, status) {
         Parse.Push.send({
           where: pushQuery,
           data: {
-            alert: "New Album " + newestAlbumName + " by " + artistName + "!"
+            alert: pushMsg,
+            a: newestParseAlbum.id
           }
+        }).then(function() {
+          console.log("Push successful: " + pushMsg);
+          
+        }, function(error) {
+          errorHandler("Push failed: " + pushMsg, status, error);
+
         });
 
       });
