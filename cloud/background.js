@@ -148,8 +148,8 @@ function sendRefreshPushForInstallId(installId) {
   Parse.Push.send({
     where: pushQuery,
     data: {
-      alert: "Finished processing",
-      far: true
+      "content-available": "1",
+      far: "true"
     }
   }).then(function() {
     console.log("Push successful: InstallationId=" + installId);
