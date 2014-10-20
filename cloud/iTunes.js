@@ -1,7 +1,10 @@
 'use strict';
 /* global Parse */
 
-var _ = require("underscore");
+var _ = require("underscore"),
+  // we've seen (http://bendodson.com/code/itunes-artwork-finder/index.html)
+  // that a few other resolutions are valid, try these
+  artworkRes = ["600", "400", "200"];
 
 (function() {
 
@@ -142,16 +145,35 @@ var _ = require("underscore");
     });
   }
 
+  // Substitutes the passed resolution in the url
+  function replaceResolutionInUrl(url, resolution) {
+    var pattern = /(\d{3}x\d{3})(-\d{2}.[A-Za-z]{3})/g;
+    url.replace(pattern, resolution + "x" + resolution + "$2");
+  }
+
   // sets the image urls on the passed parseObj
   function setImagesFromRecordOnParseObject(data, parseObj) {
     var imgs = []; // big to small
-    if (data.artworkUrl100) {
-      imgs.push(data.artworkUrl100);
+    var url100 = data.artworkUrl100;
+
+    _.each(artworkRes, function(res) {
+      if (data["artworkUrl" + res]) {
+        // first lets probe for higher res images in the record
+        imgs.push(data["artworkUrl" + res]);
+      } else if (url100) {
+        // url100 serves as a basis for trying other resolutions
+        imgs.push(replaceResolutionInUrl(url100, res));
+      }
+    });
+
+    if (url100) {
+      imgs.push(url100);
     }
     if (data.artworkUrl60) {
       imgs.push(data.artworkUrl60);
     }
-    parseObj.set("images", imgs);
+
+    parseObj.set("iTunesImages", imgs);
     return true;
   }
 
