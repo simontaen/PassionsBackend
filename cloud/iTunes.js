@@ -9,20 +9,20 @@ var _ = require("underscore");
 
   // find the exact artist name match in artist array
   function findExactMatch(items, searchArtistName) {
-    var result, counter = 0;
+    var result = [];
     if (items) {
       _.each(items, function(item) {
         if (searchArtistName === item.artistName) {
-          result = item;
-          counter++;
+          result.push(item);
         }
       });
     }
-    if (counter > 1) {
+    if (_.size(result) > 1) {
       // TODO: present a sheet to the user that he must choose the Artist
-      console.log("WARN: Found " + counter + " exact matches for Artist " + searchArtistName + " on iTunes.");
+      console.log("WARN: Found " + _.size(result) + " exact matches for Artist " + searchArtistName + " on iTunes.");
     }
-    return result;
+    // pick the most "popular" one
+    return _.first(result);
   }
 
   // try to get the album record from parse
