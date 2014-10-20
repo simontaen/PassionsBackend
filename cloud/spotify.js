@@ -14,7 +14,7 @@ var _ = require("underscore");
     var result = [];
     if (items) {
       _.each(items, function(item) {
-        if (searchArtistName === item.artistName) {
+        if (searchArtistName === item.name) {
           result.push(item);
         }
       });
