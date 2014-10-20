@@ -50,7 +50,7 @@ var _ = require("underscore"),
   }
 
   // returns unsaved new parseAlbum
-  function createAlbum(data, parseArtist) {
+  function createAlbum(data) {
     var Album = Parse.Object.extend("Album"),
       parseAlbum = new Album();
     parseAlbum.set("iTunesId", data.collectionId);
@@ -127,17 +127,31 @@ var _ = require("underscore"),
     });
   }
 
-  // requires id, https://developer.iTunes.com/web-api/get-artists-albums/
-  // album_type, country, limit, offset
+  // http://itunes.apple.com/lookup?id=122782&entity=album&limit=10&sort=recent
   // returns a promise with then(results), error(httpResponse)
-  function getAlbumsForArtist(id, params) {
+  function getAlbumsForArtist(artistId, params) {
     var endpoint = "lookup";
-    params.id = id;
+    params.id = artistId;
     params.entity = "album";
     params.sort = "recent";
     return wrappedHttpRequest(apiUrl + endpoint, params, "iTunes.getAlbumsForArtist").then(function(httpResponse) {
-      var results = httpResponse.data.results;
-      return Parse.Promise.as(_.without(results, _.first(results)));
+      var results = httpResponse.data.results,
+        allAlbums = _.without(results, _.first(results)),
+        filteredAlbums = [];
+
+      // limit is 200 and no possibility to paginate
+      if (_.size(allAlbums) > 197) {
+        alert("WARN: Very close to API limit! Artist " + artistId + " has over 197 Albums");
+      }
+
+      // we do have instances where an album in the delivered list has
+      // album.artistId != artist.artistId -> filter these!
+      _.each(allAlbums, function(album) {
+        if (album.artistId == artistId) {
+          filteredAlbums.push(album);
+        }
+      });
+      return Parse.Promise.as(filteredAlbums);
     });
   }
 
@@ -237,7 +251,7 @@ var _ = require("underscore"),
         parseArtist.set("totalAlbums", _.size(albums));
 
         // only accept exact matches since false positives lead to a worse experience
-        function spotifyHandler(objc, isExactMatch) {
+        function spotifyHandler(obj, isExactMatch) {
           if (!isExactMatch) {
             // set the latests Albums Artwork as the Artist Artwork
             setImagesFromRecordOnParseObject(_.first(albums), parseArtist);
@@ -262,7 +276,7 @@ var _ = require("underscore"),
     findNewestAlbum: function(parseArtist) {
       var data;
       return getAlbumsForArtist(parseArtist.get("iTunesId"), {
-        limit: 1
+        limit: 13
       }).then(function(results) {
         data = _.first(results);
         if ( !! data) {
