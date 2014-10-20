@@ -182,7 +182,7 @@ var _ = require("underscore");
           exactMatches = findExactMatches(httpResponse.data.artists.items, artistName);
 
         if (_.isEmpty(exactMatches)) {
-          console.log("WARN: No exact match found for Artist " + artistName + " out of " + _.size(httpResponse.data.artists.items) + ".");
+          console.log("WARN (spotify): No exact match found for Artist " + artistName + " out of " + _.size(httpResponse.data.artists.items) + ".");
           // TODO: present a sheet to the user that we did not find the Artist
           // get the first of the delivered artists as a default
           artistData = _.first(httpResponse.data.artists.items);
@@ -190,7 +190,7 @@ var _ = require("underscore");
         } else {
           if (_.size(exactMatches) > 1) {
             // TODO: present a sheet to the user that he must choose the Artist
-            console.log("WARN: Found " + _.size(exactMatches) + " exact matches for Artist " + artistName + " on iTunes.");
+            console.log("WARN (spotify): Found " + _.size(exactMatches) + " exact matches for Artist " + artistName + " on iTunes.");
           }
           // get the first of the exact matches even if too many
           // this is presumable the "best" match by the data provider
