@@ -62,28 +62,15 @@ var _ = require("underscore");
   // true if values have been updated
   // does NOT save the parseAlbum
   function updateAlbumValues(data, parseAlbum) {
-    var didUpdate = false;
-    // update values
-    if ( !! data.collectionViewUrl && parseAlbum.get("iTunesLink") != data.collectionViewUrl) {
-      parseAlbum.set("iTunesLink", data.collectionViewUrl);
-      didUpdate = true;
-    }
-    if ( !! data.collectionName && parseAlbum.get("name") != data.collectionName) {
-      parseAlbum.set("name", data.collectionName);
-      didUpdate = true;
-    }
-    if ( !! data.releaseDate) {
-      var myDate = new Date(data.releaseDate);
-      if (parseAlbum.get("releaseDate") != myDate) {
-        parseAlbum.set("releaseDate", myDate);
-        didUpdate = true;
-      }
-    }
-    if ( !! data.artworkUrl60 && !! data.artworkUrl100) {
-      var result = setImagesFromRecordOnParseObject(data, parseAlbum);
-      didUpdate = didUpdate || result;
-    }
-    return didUpdate;
+    // INFO: ALBUM VALUE UPDATES
+    parseAlbum.set("iTunesUrl", data.collectionViewUrl);
+    parseAlbum.set("name", data.collectionName);
+    parseAlbum.set("explicitness", data.explicitness);
+    parseAlbum.set("trackCount", data.trackCount);
+    parseAlbum.set("iTunesGenreName", data.primaryGenreName);
+    parseAlbum.set("releaseDate", new Date(data.releaseDate));
+    setImagesFromRecordOnParseObject(data, parseAlbum);
+    return true;
   }
 
   // For the passed albums, store them on parse
@@ -199,8 +186,13 @@ var _ = require("underscore");
         }
 
         if (iTunesA) {
+          // INFO: ALBUM VALUE UPDATES
           parseArtist.set("iTunesId", iTunesA.artistId);
-          parseArtist.set("iTunesLink", iTunesA.artistLinkUrl);
+          parseArtist.set("iTunesUrl", iTunesA.artistLinkUrl);
+          parseArtist.set("amgId", iTunesA.amgArtistId);
+          parseArtist.set("iTunesGenreName", iTunesA.primaryGenreName);
+          parseArtist.set("iTunesGenreId", iTunesA.primaryGenreId);
+          parseArtist.set("iTunesRadioUrl", iTunesA.radioStationUrl);
         }
 
         return Parse.Promise.as(parseArtist);
@@ -219,12 +211,12 @@ var _ = require("underscore");
       function processor(results) {
         // cache albums
         albums = results;
-        
+
         // update totalAlbums
         parseArtist.set("totalAlbums", _.size(albums));
         // set the latests Albums Artwork as the Artist Artwork
         setImagesFromRecordOnParseObject(_.first(albums), parseArtist);
-                  
+
         // we are done, all albums are known, store them in parse
         return processAlbumInfo(albums, parseArtist);
       }
