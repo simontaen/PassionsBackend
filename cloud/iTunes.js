@@ -148,7 +148,7 @@ var _ = require("underscore"),
   // Substitutes the passed resolution in the url
   function replaceResolutionInUrl(url, resolution) {
     var pattern = /(\d{3}x\d{3})(-\d{2}.[A-Za-z]{3})/g;
-    url.replace(pattern, resolution + "x" + resolution + "$2");
+    return url.replace(pattern, resolution + "x" + resolution + "$2");
   }
 
   // sets the image urls on the passed parseObj
