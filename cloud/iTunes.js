@@ -42,7 +42,7 @@ var _ = require("underscore"),
         thisAlbum = createAlbum(data, parseArtist);
       }
 
-      if (updateAlbumValues(data, thisAlbum)) {
+      if (updateAlbumValues(data, thisAlbum, parseArtist)) {
         return thisAlbum.save();
       }
       return Parse.Promise.as(thisAlbum);
@@ -54,14 +54,14 @@ var _ = require("underscore"),
     var Album = Parse.Object.extend("Album"),
       parseAlbum = new Album();
     parseAlbum.set("iTunesId", data.collectionId);
-    parseAlbum.set("artistId", parseArtist.id);
     return parseAlbum;
   }
 
   // true if values have been updated
   // does NOT save the parseAlbum
-  function updateAlbumValues(data, parseAlbum) {
+  function updateAlbumValues(data, parseAlbum, parseArtist) {
     // INFO: ALBUM VALUE UPDATES
+    parseAlbum.set("artistId", parseArtist.id);
     parseAlbum.set("iTunesUrl", data.collectionViewUrl);
     parseAlbum.set("name", data.collectionName);
     parseAlbum.set("explicitness", data.explicitness);
