@@ -130,7 +130,10 @@ var _ = require("underscore");
     params.media = "music";
     return Parse.Cloud.httpRequest({
       url: myUrl,
-      params: params,
+      params: params
+    }).then(function(httpResponse) {
+      httpResponse.data = JSON.parse(httpResponse.text);
+      return Parse.Promise.as(httpResponse);
     }).fail(function(httpResponse) {
       console.error((caller || myUrl) + " failed");
       console.error(httpResponse.text);
