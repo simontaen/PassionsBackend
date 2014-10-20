@@ -173,7 +173,7 @@ var _ = require("underscore"),
       imgs.push(data.artworkUrl60);
     }
 
-    parseObj.set("iTunesImages", imgs);
+    parseObj.set("images", imgs);
     return true;
   }
 
