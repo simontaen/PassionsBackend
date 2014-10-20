@@ -72,14 +72,14 @@ var _ = require("underscore");
       parseAlbum.set("name", data.collectionName);
       didUpdate = true;
     }
-    if ( !! data.release_date) {
-      var myDate = new Date(data.release_date);
+    if ( !! data.releaseDate) {
+      var myDate = new Date(data.releaseDate);
       if (parseAlbum.get("releaseDate") != myDate) {
         parseAlbum.set("releaseDate", myDate);
         didUpdate = true;
       }
     }
-    if ( !! data.images && parseAlbum.get("images") != data.images) {
+    if ( !! data.artworkUrl60 && !! data.artworkUrl100) {
       var result = setImagesFromRecordOnParseObject(data, parseAlbum);
       didUpdate = didUpdate || result;
     }
@@ -148,6 +148,7 @@ var _ = require("underscore");
     var endpoint = "lookup";
     params.id = id;
     params.entity = "album";
+    params.sort = "recent";
     return wrappedHttpRequest(apiUrl + endpoint, params, "iTunes.getAlbumsForArtist").then(function(httpResponse) {
       var results = httpResponse.data.results;
       return Parse.Promise.as(_.without(results, _.first(results)));
@@ -199,8 +200,7 @@ var _ = require("underscore");
 
         if (iTunesA) {
           parseArtist.set("iTunesId", iTunesA.artistId);
-          parseAlbum.set("iTunesLink", iTunesA.artistLinkUrl);
-          //setImagesFromRecordOnParseObject(iTunesA, parseArtist); // TODO: iTunes does not provide Artist Artwork (maybe LastFm?)
+          parseArtist.set("iTunesLink", iTunesA.artistLinkUrl);
         }
 
         return Parse.Promise.as(parseArtist);
@@ -219,8 +219,12 @@ var _ = require("underscore");
       function processor(results) {
         // cache albums
         albums = results;
+        
         // update totalAlbums
         parseArtist.set("totalAlbums", _.size(albums));
+        // set the latests Albums Artwork as the Artist Artwork
+        setImagesFromRecordOnParseObject(_.first(albums), parseArtist);
+                  
         // we are done, all albums are known, store them in parse
         return processAlbumInfo(albums, parseArtist);
       }
@@ -237,8 +241,7 @@ var _ = require("underscore");
     findNewestAlbum: function(parseArtist) {
       var data;
       return getAlbumsForArtist(parseArtist.get("iTunesId"), {
-        limit: 1,
-        sort: "recent"
+        limit: 1
       }).then(function(results) {
         data = _.first(results);
         if ( !! data) {
