@@ -115,7 +115,8 @@ var _ = require("underscore");
   function getParamsForLog(params) {
     var result = "";
     if (params) {
-      result += params.q ? " " + params.q : "";
+      result += params.term ? " " + params.term : "";
+      result += params.id ? " " + params.id : "";
     }
     return result;
   }
@@ -185,8 +186,7 @@ var _ = require("underscore");
         };
 
       // https://www.apple.com/itunes/affiliates/resources/documentation/itunes-store-web-service-search-api.html
-      return wrappedHttpRequest(apiUrl + endpoint, params, "iTunes.fetchArtist").
-      then(function(httpResponse) {
+      return wrappedHttpRequest(apiUrl + endpoint, params, "iTunes.fetchArtist").then(function(httpResponse) {
         var exactMatch = findExactMatch(httpResponse.data.results, parseArtist.get("name")),
           iTunesA = exactMatch;
 
