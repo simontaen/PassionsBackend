@@ -195,7 +195,7 @@ var _ = require("underscore");
           }
           // get the first of the exact matches even if too many
           // this is presumable the "best" match by the data provider
-          artistData = _.first(httpResponse.data.artists.items);
+          artistData = _.first(exactMatches);
         }
 
         if (artistData) {
