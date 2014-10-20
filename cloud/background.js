@@ -124,69 +124,49 @@ function findNewAlbumsForArtistOnSpotify(parseArtist, status) {
 // then(parseArtist),
 // error(httpResponse), error(parseAlbum, error), error(parseArtist, error)
 function findNewAlbumsForArtistOniTunes(parseArtist, status) {
-  var totalAlbums = parseArtist.get("totalAlbums");
 
-  // for each artist, query for ONE album to update totalAlbums
-  return spotify.fetchTotalAlbumsOfArtist(parseArtist).then(function(parseArtist) {
-    // compare the total number of albums
-    var newTotalAlbums = parseArtist.get("totalAlbums"),
-      diffAlbums = newTotalAlbums - totalAlbums,
-      msg;
+  // for each artist, find the newest Album
+  return iTunes.findNewestAlbum(parseArtist).then(function(parseArtist, newestParseAlbum, isNew) {
 
-    if (diffAlbums > 0) {
-      msg = "Processing " + newTotalAlbums + " Albums for Artist " + parseArtist.get("name") + ", has " + diffAlbums + " new.";
-      status.message(msg);
-      console.log(msg);
-      // fetch full album details (I need the release date to find the newest)
-      return spotify.fetchAllAlbumsForArtist(parseArtist, true);
-    }
-    // nothing to do (we could have less albums, but when does that happen?)
-    return Parse.Promise.as();
+    if (isNew && newestParseAlbum) {
+      return newestParseAlbum.save().then(function() {
+        var userQuery = new Parse.Query(Parse.User),
+          pushQuery = new Parse.Query(Parse.Installation),
+          newestAlbumName = newestParseAlbum.get("name"),
+          artistName = parseArtist.get("name");
 
-  }).then(function(parseArtist, parseAlbums) {
-    // There could be more than one new Album, but that would be coding for an exception
-    if (parseArtist && totalAlbums != parseArtist.get("totalAlbums")) {
-      // all albums are set
-      // You could check to see if it's recent
+        console.log("Newest Album " + newestAlbumName + " for Artist " + artistName + " (" + parseArtist.id + ")");
 
-      var newestParseAlbum = findNewestAlbum(parseAlbums),
-        userQuery = new Parse.Query(Parse.User),
-        pushQuery = new Parse.Query(Parse.Installation),
-        newestAlbumName = newestParseAlbum.get("name"),
-        artistName = parseArtist.get("name");
+        userQuery.equalTo('favArtists', parseArtist.id);
 
-      console.log("Newest Album " + newestAlbumName + " for Artist " + artistName + " (" + parseArtist.id + ")");
+        userQuery.find().then(function(parseUsers) {
+          var usersInstallationIds = [],
+            pushMsg = "New Album " + newestAlbumName + " by " + artistName + "!";
 
-      userQuery.equalTo('favArtists', parseArtist.id);
-      userQuery.find().then(function(parseUsers) {
-        var usersInstallationIds = [],
-          pushMsg = "New Album " + newestAlbumName + " by " + artistName + "!";
+          _.each(parseUsers, function(parseUser) {
+            usersInstallationIds.push(parseUser.get("installation"));
+          });
 
-        _.each(parseUsers, function(parseUser) {
-          usersInstallationIds.push(parseUser.get("installation"));
-        });
-        pushQuery.containedIn('objectId', usersInstallationIds);
+          pushQuery.containedIn('objectId', usersInstallationIds);
+          pushQuery.equalTo('channels', 'allFavArtists');
 
-        pushQuery.equalTo('channels', 'allFavArtists');
-
-        Parse.Push.send({
-          where: pushQuery,
-          data: {
-            alert: pushMsg,
-            a: newestParseAlbum.id
-          }
-        }).then(function() {
-          console.log("Push successful: " + pushMsg);
-
-        }, function(error) {
-          errorHandler("Push failed: " + pushMsg, status, error);
+          Parse.Push.send({
+            where: pushQuery,
+            data: {
+              alert: pushMsg,
+              a: newestParseAlbum.id
+            }
+          }).then(function() {
+            console.log("Push successful: " + pushMsg);
+          }, function(error) {
+            errorHandler("Push failed: " + pushMsg, status, error);
+          });
 
         });
 
+        // save artist and return
+        return parseArtist.save();
       });
-
-      // save artist and return ("totalAlbums" have changed)
-      return parseArtist.save();
     }
     // nothing to do
     return Parse.Promise.as(parseArtist);
@@ -244,7 +224,7 @@ module.exports = function( /* config */ ) {
     // https://parse.com/docs/cloud_code_guide#jobs
     var query = new Parse.Query("Artist");
     // Data provider id must exists
-    query.exists("spotifyId");
+    query.exists("iTunesId");
     // Artist should have totalAlbums (aka fetchFullAlbums did run)
     query.exists("totalAlbums");
 
@@ -253,7 +233,7 @@ module.exports = function( /* config */ ) {
       status.message("Processing " + _.size(results) + " Artists");
 
       _.each(results, function(parseArtist) {
-        promises.push(findNewAlbumsForArtistOnSpotify(parseArtist, status));
+        promises.push(findNewAlbumsForArtistOniTunes(parseArtist, status));
       });
       return Parse.Promise.when(promises);
 
@@ -278,7 +258,7 @@ module.exports = function( /* config */ ) {
 
     var query = new Parse.Query("Artist");
     // Data provider id must exists
-    query.exists("spotifyId");
+    query.exists("iTunesId");
     // this is only executed initially when the artists has just been created
     query.equalTo("totalAlbums", undefined);
 
@@ -290,7 +270,7 @@ module.exports = function( /* config */ ) {
         console.log("INFO: fetchFullAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
         promises.push(
         // fetch full album details (I need the release date in the CollectionView for sorting)
-        spotify.fetchAllAlbumsForArtist(parseArtist, true).then(function(parseArtist) {
+        iTunes.fetchAllAlbumsForArtist(parseArtist).then(function(parseArtist) {
           return parseArtist.save();
         }));
       });

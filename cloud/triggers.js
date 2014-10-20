@@ -11,9 +11,9 @@ module.exports = function(config) {
   Parse.Cloud.beforeSave("Artist", function(req, res) {
     var parseArtist = req.object;
 
-    if (!parseArtist.get("spotifyId")) {
+    if (!parseArtist.get("iTunesId")) {
       // we are creating an artist
-      spotify.fetchArtist(parseArtist).then(function(parseArtist) {
+      iTunes.fetchArtist(parseArtist).then(function(parseArtist) {
         // TODO: what if different users match differently? -> version 2.0
 
         // call background job to fetch all simplified albums
