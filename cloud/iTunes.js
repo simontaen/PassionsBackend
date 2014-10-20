@@ -178,8 +178,7 @@ var _ = require("underscore"),
      * Only SET the API results on the parse objects
      */
 
-    // query for Last.fm name correction, then search iTunes
-    // takes the first iTunes result if no exact match is found
+    // Search iTunes, takes first result if no exact match is found
     // returns a promise with then(parseArtist, isExactMatch), error(httpResponse)
     fetchArtist: function(parseArtist) {
       var endpoint = "search",
@@ -228,8 +227,6 @@ var _ = require("underscore"),
     },
 
     // query for ALL albums of the artist
-    // pass in fetchFullAlbum to get the full album info (performance!)
-    // https://developer.iTunes.com/web-api/object-model/#artist-object-full
     // returns a promise with
     // then(parseArtist), error(httpResponse) or error(parseAlbum, error)
     fetchAllAlbumsForArtist: function(parseArtist) {

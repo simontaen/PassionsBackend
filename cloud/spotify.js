@@ -162,9 +162,8 @@ var _ = require("underscore");
      * Only SET the API results on the parse objects
      */
 
-    // query for Last.fm name correction, then search spotify
-    // takes the first spotify result if no exact match is found
-    // returns a promise with then(parseArtist), error(httpResponse)
+    // Search spotify, takes first result if no exact match is found
+    // returns a promise with then(parseArtist, isExactMatch), error(httpResponse)
     fetchArtist: function(parseArtist) {
       var endpoint = "search/",
         params = {

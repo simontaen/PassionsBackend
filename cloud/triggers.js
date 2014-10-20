@@ -13,26 +13,7 @@ module.exports = function(config) {
 
     if (!parseArtist.get("iTunesId")) {
       // we are creating an artist
-      iTunes.fetchArtist(parseArtist).then(function(parseArtist) {
-        // TODO: what if different users match differently? -> version 2.0
-
-        // call background job to fetch all simplified albums
-        // TODO: I need to get the installation here and send in the body
-        // maybe I need to do this from the device
-        // Parse.Cloud.httpRequest({
-        //   url: "https://api.parse.com/1/jobs/fetchFullAlbums",
-        //   method: "POST",
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //     "X-Parse-Application-Id": config.appId,
-        //     "X-Parse-Master-Key": config.masterKey
-        //   },
-        //   body: {}
-        // });
-
-        // return the artist immediatly
-        return Parse.Promise.as(parseArtist);
-      }).then(res.success, res.error);
+      iTunes.fetchArtist(parseArtist).then(res.success, res.error);
 
     } else {
       res.success();
