@@ -235,18 +235,19 @@ var _ = require("underscore"),
       function processor(albums) {
         // update totalAlbums
         parseArtist.set("totalAlbums", _.size(albums));
-        
-        // We try to use the Spotify Artist Artwork, but only for exact matches
-        // since false positives lead to a worse experience
-        return spotify.fetchArtist(parseArtist).then(function(parseArtist, isExactMatch) {
+
+        // only accept exact matches since false positives lead to a worse experience
+        function spotifyHandler(objc, isExactMatch) {
           if (!isExactMatch) {
             // set the latests Albums Artwork as the Artist Artwork
             setImagesFromRecordOnParseObject(_.first(albums), parseArtist);
           }
-
           // we are done, all albums are known, store them in parse
           return processAlbumInfo(albums, parseArtist);
-        });
+        }
+
+        // We try to use the Spotify Artist Artwork
+        return spotify.fetchArtist(parseArtist).then(spotifyHandler, spotifyHandler);
       }
 
       // initial call
