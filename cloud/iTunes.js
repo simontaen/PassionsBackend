@@ -10,8 +10,8 @@ var _ = require("underscore"),
 
   var apiUrl = "https://itunes.apple.com/";
 
-  // find the exact artist name match in artist array
-  function findExactMatch(items, searchArtistName) {
+  // find the exact artist name matches in artist array
+  function findExactMatches(items, searchArtistName) {
     var result = [];
     if (items) {
       _.each(items, function(item) {
@@ -20,12 +20,7 @@ var _ = require("underscore"),
         }
       });
     }
-    if (_.size(result) > 1) {
-      // TODO: present a sheet to the user that he must choose the Artist
-      console.log("WARN: Found " + _.size(result) + " exact matches for Artist " + searchArtistName + " on iTunes.");
-    }
-    // pick the most "popular" one
-    return _.first(result);
+    return result;
   }
 
   // try to get the album record from parse
@@ -185,7 +180,7 @@ var _ = require("underscore"),
 
     // query for Last.fm name correction, then search iTunes
     // takes the first iTunes result if no exact match is found
-    // returns a promise with then(parseArtist), error(httpResponse)
+    // returns a promise with then(parseArtist, isExactMatch), error(httpResponse)
     fetchArtist: function(parseArtist) {
       var endpoint = "search",
         params = {
@@ -197,27 +192,38 @@ var _ = require("underscore"),
 
       // https://www.apple.com/itunes/affiliates/resources/documentation/itunes-store-web-service-search-api.html
       return wrappedHttpRequest(apiUrl + endpoint, params, "iTunes.fetchArtist").then(function(httpResponse) {
-        var exactMatch = findExactMatch(httpResponse.data.results, parseArtist.get("name")),
-          iTunesA = exactMatch;
+        var artistName = parseArtist.get("name"),
+          artistData,
+          exactMatches = findExactMatches(httpResponse.data.results, artistName);
 
-        if (!iTunesA) {
-          console.log("WARN: No exact match found for Artist " + parseArtist.get("name") + " out of " + _.size(httpResponse.data.results) + ".");
+        if (_.isEmpty(exactMatches)) {
+          console.log("WARN: No exact match found for Artist " + artistName + " out of " + _.size(httpResponse.data.results) + ".");
           // TODO: present a sheet to the user that we did not find the Artist
           // get the first of the delivered artists as a default
-          iTunesA = _.first(httpResponse.data.results);
+          artistData = _.first(httpResponse.data.results);
+
+        } else {
+          if (_.size(exactMatches) > 1) {
+            // TODO: present a sheet to the user that he must choose the Artist
+            console.log("WARN: Found " + _.size(exactMatches) + " exact matches for Artist " + artistName + " on iTunes.");
+          }
+          // get the first of the exact matches even if too many
+          // this is presumable the "best" match by the data provider
+          artistData = _.first(httpResponse.data.results);
         }
 
-        if (iTunesA) {
-          // INFO: ALBUM VALUE UPDATES
-          parseArtist.set("iTunesId", iTunesA.artistId);
-          parseArtist.set("iTunesUrl", iTunesA.artistLinkUrl);
-          parseArtist.set("amgId", iTunesA.amgArtistId);
-          parseArtist.set("iTunesGenreName", iTunesA.primaryGenreName);
-          parseArtist.set("iTunesGenreId", iTunesA.primaryGenreId);
-          parseArtist.set("iTunesRadioUrl", iTunesA.radioStationUrl);
+        if (artistData) {
+          // INFO: ARTIST VALUE UPDATES
+          parseArtist.set("iTunesId", artistData.artistId);
+          parseArtist.set("iTunesUrl", artistData.artistLinkUrl);
+          parseArtist.set("amgId", artistData.amgArtistId);
+          parseArtist.set("iTunesGenreName", artistData.primaryGenreName);
+          parseArtist.set("iTunesGenreId", artistData.primaryGenreId);
+          parseArtist.set("iTunesRadioUrl", artistData.radioStationUrl);
+          // no images delivered for Artist
         }
 
-        return Parse.Promise.as(parseArtist);
+        return Parse.Promise.as(parseArtist, _.size(exactMatches) == 1);
       });
     },
 

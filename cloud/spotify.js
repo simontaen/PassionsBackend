@@ -9,20 +9,15 @@ var _ = require("underscore");
   //var appId = "nCQQ7cw92dCJJoH1cwbEv5ZBFmsEyFgSlVfmljp9";
   //var restKey = "BAamVLwiBS0XY64WhlYfxADSq0FjRSP97fIkWu4d";
 
-  // find the exact artist name match in artist array
-  function findExactMatch(items, artistName) {
-    var result, counter = 0;
+  // find the exact artist name matches in artist array
+  function findExactMatches(items, searchArtistName) {
+    var result = [];
     if (items) {
       _.each(items, function(item) {
-        if (artistName === item.name) {
-          result = item;
-          counter++;
+        if (searchArtistName === item.artistName) {
+          result.push(item);
         }
       });
-    }
-    if (counter > 1) {
-      // TODO: present a sheet to the user that he must choose the Artist
-      console.log("WARN: Found " + counter + " exact matches for Artist " + artistName + " on spotify.");
     }
     return result;
   }
@@ -179,24 +174,35 @@ var _ = require("underscore");
         };
 
       // https://developer.spotify.com/web-api/search-item/
-      return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.fetchArtist").
-      then(function(httpResponse) {
-        var exactMatch = findExactMatch(httpResponse.data.artists.items, parseArtist.get("name")),
-          spotifyA = exactMatch;
+      return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.fetchArtist").then(function(httpResponse) {
+        var artistName = parseArtist.get("name"),
+          artistData,
+          exactMatches = findExactMatches(httpResponse.data.artists.items, artistName);
 
-        if (!spotifyA) {
-          console.log("WARN: No exact match found for Artist " + parseArtist.get("name") + " out of " + _.size(httpResponse.data.artists.items) + ".");
+        if (_.isEmpty(exactMatches)) {
+          console.log("WARN: No exact match found for Artist " + artistName + " out of " + _.size(httpResponse.data.artists.items) + ".");
           // TODO: present a sheet to the user that we did not find the Artist
           // get the first of the delivered artists as a default
-          spotifyA = httpResponse.data.artists.items[0];
+          artistData = _.first(httpResponse.data.artists.items);
+
+        } else {
+          if (_.size(exactMatches) > 1) {
+            // TODO: present a sheet to the user that he must choose the Artist
+            console.log("WARN: Found " + _.size(exactMatches) + " exact matches for Artist " + artistName + " on iTunes.");
+          }
+          // get the first of the exact matches even if too many
+          // this is presumable the "best" match by the data provider
+          artistData = _.first(httpResponse.data.artists.items);
         }
 
-        if (spotifyA) {
-          parseArtist.set("spotifyId", spotifyA.id);
-          setImagesFromRecordOnParseObject(spotifyA, parseArtist);
+        if (artistData) {
+          // INFO: ARTIST VALUE UPDATES
+          parseArtist.set("spotifyId", artistData.id);
+          parseArtist.set("spotifyUrl", artistData.external_urls ? artistData.external_urls.spotify : undefined);
+          setImagesFromRecordOnParseObject(artistData, parseArtist);
         }
 
-        return Parse.Promise.as(parseArtist);
+        return Parse.Promise.as(parseArtist, _.size(exactMatches) == 1);
       });
     },
 
