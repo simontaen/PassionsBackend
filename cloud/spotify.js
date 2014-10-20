@@ -14,7 +14,7 @@ var _ = require("underscore");
     var result = [];
     if (items) {
       _.each(items, function(item) {
-        if (searchArtistName === item.name) {
+        if (searchArtistName == item.name) {
           result.push(item);
         }
       });
@@ -127,8 +127,9 @@ var _ = require("underscore");
       console.log("Calling " + myUrl + getParamsForLog(params) + " from " + caller);
     }
     return Parse.Cloud.httpRequest({
+      // encoding is done by Parse
       url: myUrl,
-      params: params,
+      params: params
     }).fail(function(httpResponse) {
       console.error((caller || myUrl) + " failed");
       console.error(httpResponse.text);
@@ -166,12 +167,12 @@ var _ = require("underscore");
     // returns a promise with then(parseArtist, isExactMatch), error(httpResponse)
     fetchArtist: function(parseArtist) {
       var endpoint = "search/",
-        query = "artist:" + encodeURIComponent(parseArtist.get("name")),
+        query = "artist:" + parseArtist.get("name"),
         params = {
           type: "artist"
-        };    
+        };
       if (parseArtist.get("iTunesGenreName")) {
-        query += "+" + "genre:" + encodeURIComponent(parseArtist.get("iTunesGenreName"));
+        query += " " + "genre:" + parseArtist.get("iTunesGenreName");
       }
       params.q = query;
 
