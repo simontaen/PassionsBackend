@@ -166,11 +166,14 @@ var _ = require("underscore");
     // returns a promise with then(parseArtist, isExactMatch), error(httpResponse)
     fetchArtist: function(parseArtist) {
       var endpoint = "search/",
+        query = "artist:" + encodeURIComponent(parseArtist.get("name")),
         params = {
-          // get the updated name
-          q: parseArtist.get("name"),
           type: "artist"
-        };
+        };    
+      if (parseArtist.get("iTunesGenreName")) {
+        query += "+" + "genre:" + encodeURIComponent(parseArtist.get("iTunesGenreName"));
+      }
+      params.q = query;
 
       // https://developer.spotify.com/web-api/search-item/
       return wrappedHttpRequest(apiUrl + endpoint, params, "spotify.fetchArtist").then(function(httpResponse) {

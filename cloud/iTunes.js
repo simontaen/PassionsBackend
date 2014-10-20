@@ -2,6 +2,7 @@
 /* global Parse */
 
 var _ = require("underscore"),
+  spotify = require('cloud/spotify.js'),
   // we've seen (http://bendodson.com/code/itunes-artwork-finder/index.html)
   // that a few other resolutions are valid, try these
   artworkRes = ["600", "400", "200"];
@@ -230,20 +231,22 @@ var _ = require("underscore"),
     // returns a promise with
     // then(parseArtist), error(httpResponse) or error(parseAlbum, error)
     fetchAllAlbumsForArtist: function(parseArtist) {
-      var albums;
-
       // cache the results and call "next"
-      function processor(results) {
-        // cache albums
-        albums = results;
-
+      function processor(albums) {
         // update totalAlbums
         parseArtist.set("totalAlbums", _.size(albums));
-        // set the latests Albums Artwork as the Artist Artwork
-        setImagesFromRecordOnParseObject(_.first(albums), parseArtist);
+        
+        // We try to use the Spotify Artist Artwork, but only for exact matches
+        // since false positives lead to a worse experience
+        return spotify.fetchArtist(parseArtist).then(function(parseArtist, isExactMatch) {
+          if (!isExactMatch) {
+            // set the latests Albums Artwork as the Artist Artwork
+            setImagesFromRecordOnParseObject(_.first(albums), parseArtist);
+          }
 
-        // we are done, all albums are known, store them in parse
-        return processAlbumInfo(albums, parseArtist);
+          // we are done, all albums are known, store them in parse
+          return processAlbumInfo(albums, parseArtist);
+        });
       }
 
       // initial call
