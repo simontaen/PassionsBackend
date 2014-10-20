@@ -194,11 +194,12 @@ var _ = require("underscore");
           console.log("WARN: No exact match found for Artist " + parseArtist.get("name") + " out of " + _.size(httpResponse.data.results) + ".");
           // TODO: present a sheet to the user that we did not find the Artist
           // get the first of the delivered artists as a default
-          iTunesA = httpResponse.data.results[0];
+          iTunesA = _.first(httpResponse.data.results);
         }
 
         if (iTunesA) {
           parseArtist.set("iTunesId", iTunesA.artistId);
+          parseAlbum.set("iTunesLink", iTunesA.artistLinkUrl);
           //setImagesFromRecordOnParseObject(iTunesA, parseArtist); // TODO: iTunes does not provide Artist Artwork (maybe LastFm?)
         }
 
