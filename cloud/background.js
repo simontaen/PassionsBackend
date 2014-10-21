@@ -230,7 +230,7 @@ module.exports = function( /* config */ ) {
     var query = new Parse.Query("Artist");
     // Data provider id must exists
     query.exists("iTunesId");
-    // Artist should have totalAlbums (aka fetchFullAlbums did run)
+    // Artist should have totalAlbums (aka fetchFullAlbums did run successfully)
     query.exists("totalAlbums");
 
     query.find().then(function(results) {

@@ -161,7 +161,7 @@ var _ = require("underscore"),
         return Parse.Promise.as(filteredAlbums, filteredAlbumsCount);
       }
 
-      console.log("WARN: " + albumsCount + " Albums found for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ", " + parseArtist.get("iTunesId") + ")");
+      console.log("WARN: " + filteredAlbumsCount + " Albums found for Artist " + artistId);
       return Parse.Promise.as(undefined, filteredAlbumsCount);
     });
   }
@@ -260,7 +260,6 @@ var _ = require("underscore"),
       function processor(albums, albumsCount) {
         // update totalAlbums
         albumsCount > 0 && parseArtist.set("totalAlbums", _.size(albums));
-        console.log("Found " + albumsCount + " Albums for Artist " + parseArtist.get("name"));
 
         // only accept exact matches since false positives lead to a worse experience
         function spotifyHandler(obj, isExactMatch) {

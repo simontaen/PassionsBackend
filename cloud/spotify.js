@@ -123,9 +123,9 @@ var _ = require("underscore");
 
   // returns a promise with then(httpResponse), error(httpResponse)
   function wrappedHttpRequest(myUrl, params, caller) {
-    if (caller != "spotify.processAlbumInfo") {
-      console.log("Calling " + myUrl + getParamsForLog(params) + " from " + caller);
-    }
+    // if (caller != "spotify.processAlbumInfo") {
+    //   console.log("Calling " + myUrl + getParamsForLog(params) + " from " + caller);
+    // }
     return Parse.Cloud.httpRequest({
       // encoding is done by Parse
       url: myUrl,
