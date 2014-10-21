@@ -11,6 +11,15 @@ var _ = require("underscore"),
 
   var apiUrl = "https://itunes.apple.com/";
 
+  function getUTC(date) {
+    return Date.UTC(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    date.getHours(),
+    date.getMinutes());
+  }
+
   // find the exact artist name matches in artist array
   function findExactMatches(items, searchArtistName) {
     var result = [];
@@ -128,6 +137,7 @@ var _ = require("underscore"),
   }
 
   // http://itunes.apple.com/lookup?id=122782&entity=album&limit=10&sort=recent
+  // sadly its unordered even when sort=recent is passed
   // returns a promise with then(albums || undefined, albumsCount), error(httpResponse)
   function getAlbumsForArtist(artistId, params) {
     var endpoint = "lookup";
@@ -296,9 +306,14 @@ var _ = require("underscore"),
       }).then(function(albums, albumsCount) {
 
         if (albumsCount > 0) {
+          // old to new
+          var sortedAlbums = _.sortBy(albums, function(thisAlbum) {
+            return getUTC(new Date(thisAlbum.releaseDate));
+          });
+
           // Go check if we have the newest
           var query = new Parse.Query("Album"),
-            album = _.first(albums);
+            album = _.last(sortedAlbums);
           query.equalTo("iTunesId", album.collectionId);
 
           return query.first().then(function(parseAlbum) {
