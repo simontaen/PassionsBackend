@@ -155,9 +155,14 @@ var _ = require("underscore"),
       });
 
       filteredAlbumsCount = _.size(filteredAlbums);
-      console.log("INFO: Valid Albums for Artist " + artistId + " " + filteredAlbumsCount + " out of " + allAlbumsCount);
 
-      return Parse.Promise.as(filteredAlbumsCount === 0 ? undefined : filteredAlbums, filteredAlbumsCount);
+      if (filteredAlbumsCount > 0) {
+        console.log("INFO: Valid Albums for Artist " + artistId + " " + filteredAlbumsCount + " out of " + allAlbumsCount);
+        return Parse.Promise.as(filteredAlbums, filteredAlbumsCount);
+      }
+
+      console.log("WARN: " + albumsCount + " Albums found for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ", " + parseArtist.get("iTunesId") + ")");
+      return Parse.Promise.as(undefined, filteredAlbumsCount);
     });
   }
 
@@ -268,7 +273,6 @@ var _ = require("underscore"),
 
           } else {
             // Some Artists don't have Albums on iTunes, return
-            console.log("WARN: " + albumsCount + " Albums found for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ", " + parseArtist.get("iTunesId") + ")");
             return Parse.Promise.as(parseArtist);
           }
         }
@@ -311,7 +315,6 @@ var _ = require("underscore"),
 
         }
         // Some Artists don't have Albums on iTunes, return
-        console.log("WARN: " + albumsCount + " Albums found for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ", " + parseArtist.get("iTunesId") + ")");
         return Parse.Promise.as(parseArtist);
       });
     }
