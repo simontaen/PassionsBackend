@@ -259,17 +259,23 @@ module.exports = function( /* config */ ) {
     if (fetchFullAlbumsRunning) {
       alert("fetchFullAlbumsRunning " + fetchFullAlbumsRunning);
     } else {
-      console.log("fetchFullAlbumsRunning " + fetchFullAlbumsRunning);
+      console.log("DEBUG: fetchFullAlbumsRunning " + fetchFullAlbumsRunning);
     }
     fetchFullAlbumsRunning = true;
 
-    var query = new Parse.Query("Artist");
+    var totalAlbums0 = new Parse.Query("Artist"),
+      totAlbUndef = new Parse.Query("Artist"),
+      compoundQuery;
+    // this is executed initially when the artist has just been created
+    totAlbUndef.equalTo("totalAlbums", undefined);
+    // or when something went wrong
+    totalAlbums0.equalTo("totalAlbums", 0);
+    
+    compoundQuery = Parse.Query.or(totalAlbums0, totAlbUndef);
     // Data provider id must exists
-    query.exists("iTunesId");
-    // this is only executed initially when the artists has just been created
-    query.equalTo("totalAlbums", undefined);
+    compoundQuery.exists("iTunesId");
 
-    query.find().then(function(results) {
+    compoundQuery.find().then(function(results) {
       var promises = [];
       status.message("Processing " + _.size(results) + " Artists");
       console.log("INFO: fetchFullAlbums for " + _.size(results) + " Artists");

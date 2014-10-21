@@ -92,7 +92,7 @@ var _ = require("underscore"),
     // Return a new promise that is resolved when all are finished
     return Parse.Promise.when(promises).then(function() {
       // set albums on artist (just overwrite)
-      console.log("Processed " + parseAlbums.length + " Albums for Artist " + parseArtist.get("name"));
+      console.log("INFO: Processed " + parseAlbums.length + " Albums for Artist " + parseArtist.get("name"));
       return Parse.Promise.as(parseArtist, parseAlbums);
     });
   }
@@ -258,8 +258,8 @@ var _ = require("underscore"),
     fetchAllAlbumsForArtist: function(parseArtist) {
       // cache the results and call "next"
       function processor(albums, albumsCount) {
-        // update totalAlbums
-        albumsCount > 0 && parseArtist.set("totalAlbums", _.size(albums));
+        // update totalAlbums (even if 0, undefined is processing for the device)
+        parseArtist.set("totalAlbums", albumsCount);
 
         // only accept exact matches since false positives lead to a worse experience
         function spotifyHandler(obj, isExactMatch) {
