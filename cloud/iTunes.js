@@ -92,7 +92,7 @@ var _ = require("underscore"),
     // Return a new promise that is resolved when all are finished
     return Parse.Promise.when(promises).then(function() {
       // set albums on artist (just overwrite)
-      console.log("Found " + parseAlbums.length + " Albums for Artist " + parseArtist.get("name"));
+      console.log("Processed " + parseAlbums.length + " Albums for Artist " + parseArtist.get("name"));
       return Parse.Promise.as(parseArtist, parseAlbums);
     });
   }
@@ -249,6 +249,7 @@ var _ = require("underscore"),
       function processor(albums) {
         // update totalAlbums
         parseArtist.set("totalAlbums", _.size(albums));
+        console.log("Found " + _.size(albums) + " Albums for Artist " + parseArtist.get("name"));
 
         // only accept exact matches since false positives lead to a worse experience
         function spotifyHandler(obj, isExactMatch) {
