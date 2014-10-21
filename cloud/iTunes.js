@@ -111,9 +111,9 @@ var _ = require("underscore"),
 
   // returns a promise with then(httpResponse), error(httpResponse)
   function wrappedHttpRequest(myUrl, params, caller) {
-    if (caller != "iTunes.processAlbumInfo") {
-      console.log("Calling " + myUrl + getParamsForLog(params) + " from " + caller);
-    }
+    // if (caller != "iTunes.processAlbumInfo") {
+    //   console.log("Calling " + myUrl + getParamsForLog(params) + " from " + caller);
+    // }
     params.media = "music";
     return Parse.Cloud.httpRequest({
       url: myUrl,
@@ -128,7 +128,7 @@ var _ = require("underscore"),
   }
 
   // http://itunes.apple.com/lookup?id=122782&entity=album&limit=10&sort=recent
-  // returns a promise with then(results), error(httpResponse)
+  // returns a promise with then(albums || undefined, albumsCount), error(httpResponse)
   function getAlbumsForArtist(artistId, params) {
     var endpoint = "lookup";
     params.id = artistId;
@@ -137,10 +137,12 @@ var _ = require("underscore"),
     return wrappedHttpRequest(apiUrl + endpoint, params, "iTunes.getAlbumsForArtist").then(function(httpResponse) {
       var results = httpResponse.data.results,
         allAlbums = _.without(results, _.first(results)),
-        filteredAlbums = [];
+        allAlbumsCount = _.size(allAlbums),
+        filteredAlbums = [],
+        filteredAlbumsCount;
 
       // limit is 200 and no possibility to paginate
-      if (_.size(allAlbums) > 197) {
+      if (allAlbumsCount > 197) {
         alert("WARN: Very close to API limit! Artist " + artistId + " has over 197 Albums");
       }
 
@@ -151,7 +153,11 @@ var _ = require("underscore"),
           filteredAlbums.push(album);
         }
       });
-      return Parse.Promise.as(filteredAlbums);
+
+      filteredAlbumsCount = _.size(filteredAlbums);
+      console.log("INFO: Valid Albums for Artist " + artistId + " " + filteredAlbumsCount + " out of " + allAlbumsCount);
+
+      return Parse.Promise.as(filteredAlbumsCount === 0 ? undefined : filteredAlbums, filteredAlbumsCount);
     });
   }
 
@@ -246,23 +252,23 @@ var _ = require("underscore"),
     // then(parseArtist), error(httpResponse) or error(parseAlbum, error)
     fetchAllAlbumsForArtist: function(parseArtist) {
       // cache the results and call "next"
-      function processor(albums) {
+      function processor(albums, albumsCount) {
         // update totalAlbums
-        parseArtist.set("totalAlbums", _.size(albums));
-        console.log("Found " + _.size(albums) + " Albums for Artist " + parseArtist.get("name"));
+        albumsCount > 0 && parseArtist.set("totalAlbums", _.size(albums));
+        console.log("Found " + albumsCount + " Albums for Artist " + parseArtist.get("name"));
 
         // only accept exact matches since false positives lead to a worse experience
         function spotifyHandler(obj, isExactMatch) {
-          if (_.first(albums)) {
-            if (!isExactMatch) {
-              // set the latests Albums Artwork as the Artist Artwork
-              setImagesFromRecordOnParseObject(_.first(albums), parseArtist);
-            }
+          if (albumsCount > 0) {
+            // set the latests Albums Artwork as the Artist Artwork
+            !isExactMatch && setImagesFromRecordOnParseObject(_.first(albums), parseArtist);
+
             // we are done, all albums are known, store them in parse
             return processAlbumInfo(albums, parseArtist);
+
           } else {
-            // no albums found, return
-            // TODO: why?
+            // Some Artists don't have Albums on iTunes, return
+            console.log("WARN: " + albumsCount + " Albums found for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ", " + parseArtist.get("iTunesId") + ")");
             return Parse.Promise.as(parseArtist);
           }
         }
@@ -281,29 +287,32 @@ var _ = require("underscore"),
     // fetches the latest album and creates it if new, else returns existing newest
     // returns a promise with then(parseArtist, newestParseAlbum, isNew), error(httpResponse)
     findNewestAlbum: function(parseArtist) {
-      var album;
       return getAlbumsForArtist(parseArtist.get("iTunesId"), {
         limit: 13
       }).then(function(albums, albumsCount) {
-        album = _.first(albums);
-        if ( !! album) {
-          // Go check if it exists
-          var query = new Parse.Query("Album");
+
+        if (albumsCount > 0) {
+          // Go check if we have the newest
+          var query = new Parse.Query("Album"),
+            album = _.first(albums);
           query.equalTo("iTunesId", album.collectionId);
-          return query.first();
-        }
-        return Parse.Promise.error(results);
 
-      }).then(function(parseAlbum) {
-        if (parseAlbum) {
-          // Found existing Album
-          return Parse.Promise.as(parseArtist, parseAlbum, false);
-        }
-        var newParseAlbum = createAlbum(album, parseArtist);
+          return query.first().then(function(parseAlbum) {
+            if (parseAlbum) {
+              // Found existing Album
+              return Parse.Promise.as(parseArtist, parseAlbum, false);
+            }
+            var newParseAlbum = createAlbum(album, parseArtist);
 
-        // New album found
-        parseArtist.set("totalAlbums", parseArtist.get("totalAlbums") + 1);
-        return Parse.Promise.as(parseArtist, newParseAlbum, true);
+            // New album found
+            parseArtist.set("totalAlbums", parseArtist.get("totalAlbums") + 1);
+            return Parse.Promise.as(parseArtist, newParseAlbum, true);
+          });
+
+        }
+        // Some Artists don't have Albums on iTunes, return
+        console.log("WARN: " + albumsCount + " Albums found for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ", " + parseArtist.get("iTunesId") + ")");
+        return Parse.Promise.as(parseArtist);
       });
     }
 
