@@ -219,21 +219,21 @@ var _ = require("underscore"),
       return wrappedHttpRequest(apiUrl + endpoint, params, "iTunes.fetchArtist").then(function(httpResponse) {
         var artistName = parseArtist.get("name"),
           artistData,
-          exactMatches = findExactMatches(httpResponse.data.results, artistName);
+          exactMatches = findExactMatches(httpResponse.data.results, artistName),
+          exactMatchesCount = _.size(exactMatches);
 
-        if (_.isEmpty(exactMatches)) {
+        if (exactMatchesCount > 0) {
+          // TODO: present a sheet to the user that he must choose the Artist
+          exactMatchesCount > 1 && console.log("INFO (iTunes): Found " + exactMatchesCount + " exact matches for Artist " + artistName + " on iTunes.");
+
+          // get the first of the exact matches even if too many
+          // this is presumable the "best" match by the data provider
+          artistData = _.first(exactMatches);
+
+        } else {
           console.log("INFO (iTunes): No exact match found for Artist " + artistName + " out of " + _.size(httpResponse.data.results) + ".");
           // TODO: present a sheet to the user that we did not find the Artist
           // get the first of the delivered artists as a default
-          artistData = _.first(httpResponse.data.results);
-
-        } else {
-          if (_.size(exactMatches) > 1) {
-            // TODO: present a sheet to the user that he must choose the Artist
-            console.log("INFO (iTunes): Found " + _.size(exactMatches) + " exact matches for Artist " + artistName + " on iTunes.");
-          }
-          // get the first of the exact matches even if too many
-          // this is presumable the "best" match by the data provider
           artistData = _.first(httpResponse.data.results);
         }
 
@@ -248,7 +248,7 @@ var _ = require("underscore"),
           // no images delivered for Artist
         }
 
-        return Parse.Promise.as(parseArtist, _.size(exactMatches) == 1);
+        return Parse.Promise.as(parseArtist, exactMatchesCount == 1);
       });
     },
 
