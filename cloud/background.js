@@ -246,7 +246,8 @@ module.exports = function( /* config */ ) {
 
     }).then(function() {
       // all artists are processed
-      status.success("findNewAlbums completed successfully");
+      console.log("INFO: findNewAlbums completed successfully");
+      status.success("Success");
 
     }, function(errorOrObject, errorOrUndefined) {
       errorHandler("findNewAlbums", status, errorOrObject, errorOrUndefined);
@@ -302,7 +303,8 @@ module.exports = function( /* config */ ) {
       }
 
       // close the task
-      status.success("fetchFullAlbums completed successfully");
+      console.log("INFO: fetchFullAlbums completed successfully");
+      status.success("Success");
 
     }, function(errorOrObject, errorOrUndefined) {
       fetchFullAlbumsRunning = false;
