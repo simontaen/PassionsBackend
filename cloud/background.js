@@ -135,7 +135,7 @@ function findNewAlbumsForArtistOniTunes(parseArtist, status) {
           newestAlbumName = newestParseAlbum.get("name"),
           artistName = parseArtist.get("name");
 
-        console.log("INFO: Newest Album " + newestAlbumName + " for Artist " + artistName + " (" + parseArtist.id + ")");
+        console.log("INFO: Newest Album " + newestAlbumName + " for Artist " + artistName + " (" + parseArtist.id + ", " + parseArtist.get("iTunesId") + ")");
 
         userQuery.equalTo('favArtists', parseArtist.id);
 

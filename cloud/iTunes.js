@@ -136,6 +136,7 @@ var _ = require("underscore"),
     params.sort = "recent";
     return wrappedHttpRequest(apiUrl + endpoint, params, "iTunes.getAlbumsForArtist").then(function(httpResponse) {
       var results = httpResponse.data.results,
+        // remove artist record
         allAlbums = _.without(results, _.first(results)),
         allAlbumsCount = _.size(allAlbums),
         filteredAlbums = [],
@@ -264,7 +265,7 @@ var _ = require("underscore"),
         // only accept exact matches since false positives lead to a worse experience
         function spotifyHandler(obj, isExactMatch) {
           if (albumsCount > 0) {
-            // set the latests Albums Artwork as the Artist Artwork
+            // set SOME (order not guaranteed here) Albums Artwork as the Artist Artwork
             !isExactMatch && setImagesFromRecordOnParseObject(_.first(albums), parseArtist);
 
             // we are done, all albums are known, store them in parse
