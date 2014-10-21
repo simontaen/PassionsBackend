@@ -306,6 +306,8 @@ var _ = require("underscore"),
               return Parse.Promise.as(parseArtist, parseAlbum, false);
             }
             var newParseAlbum = createAlbum(album, parseArtist);
+            updateAlbumValues(album, newParseAlbum, parseArtist);
+            newParseAlbum.save();
 
             // New album found
             parseArtist.set("totalAlbums", parseArtist.get("totalAlbums") + 1);
