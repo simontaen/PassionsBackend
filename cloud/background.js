@@ -135,7 +135,7 @@ function findNewAlbumsForArtistOniTunes(parseArtist, status) {
           newestAlbumName = newestParseAlbum.get("name"),
           artistName = parseArtist.get("name");
 
-        console.log("Newest Album " + newestAlbumName + " for Artist " + artistName + " (" + parseArtist.id + ")");
+        console.log("INFO: Newest Album " + newestAlbumName + " for Artist " + artistName + " (" + parseArtist.id + ")");
 
         userQuery.equalTo('favArtists', parseArtist.id);
 
@@ -157,7 +157,7 @@ function findNewAlbumsForArtistOniTunes(parseArtist, status) {
               a: newestParseAlbum.id
             }
           }).then(function() {
-            console.log("Push successful: " + pushMsg);
+            console.log("INFO: Push successful: " + pushMsg);
           }, function(error) {
             errorHandler("Push failed: " + pushMsg, status, error);
           });
@@ -178,17 +178,25 @@ function errorHandler(caller, status, errorOrObject, errorOrUndefined) {
   var error = errorOrUndefined || errorOrObject,
     msg = error;
 
+  console.log("ERROR: errorHandler errorOrUndefined:");
+  console.log(errorOrUndefined);
+  console.log("ERROR: errorHandler errorOrObject:");
+  console.log(errorOrObject);
+
   if (error) {
-    // inspect the error for more info
     if (error.message) {
       msg = error.message + " (" + error.code + ")";
+    } else if (error.id) {
+      msg = "Object with name " + error.get("name") + " (" + error.id + ")";
     } else if (error.text) {
       msg = error.text;
     } // what else could error be?
   }
   msg = "ERROR: " + caller + ": " + msg;
 
-  console.error(msg);
+  console.log("ERROR: errorHandler msg:");
+  console.log(msg);
+
   alert(msg);
   if (status) {
     status.error(msg);
@@ -231,8 +239,10 @@ module.exports = function( /* config */ ) {
     query.find().then(function(results) {
       var promises = [];
       status.message("Processing " + _.size(results) + " Artists");
+      console.log("INFO: findNewAlbums for " + _.size(results) + " Artists");
 
       _.each(results, function(parseArtist) {
+        console.log("INFO: findNewAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
         promises.push(findNewAlbumsForArtistOniTunes(parseArtist, status));
       });
       return Parse.Promise.when(promises);
@@ -265,6 +275,7 @@ module.exports = function( /* config */ ) {
     query.find().then(function(results) {
       var promises = [];
       status.message("Processing " + _.size(results) + " Artists");
+      console.log("INFO: fetchFullAlbums for " + _.size(results) + " Artists");
 
       _.each(results, function(parseArtist) {
         console.log("INFO: fetchFullAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
