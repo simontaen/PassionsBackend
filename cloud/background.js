@@ -194,9 +194,6 @@ function errorHandler(caller, status, errorOrObject, errorOrUndefined) {
   }
   msg = "ERROR: " + caller + ": " + msg;
 
-  console.log("ERROR: errorHandler msg:");
-  console.log(msg);
-
   alert(msg);
   if (status) {
     status.error(msg);
@@ -242,7 +239,7 @@ module.exports = function( /* config */ ) {
       console.log("INFO: findNewAlbums for " + _.size(results) + " Artists");
 
       _.each(results, function(parseArtist) {
-        console.log("INFO: findNewAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
+        console.log("INFO: findNewAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ", " + parseArtist.get("iTunesId") + ")");
         promises.push(findNewAlbumsForArtistOniTunes(parseArtist, status));
       });
       return Parse.Promise.when(promises);
@@ -278,7 +275,7 @@ module.exports = function( /* config */ ) {
       console.log("INFO: fetchFullAlbums for " + _.size(results) + " Artists");
 
       _.each(results, function(parseArtist) {
-        console.log("INFO: fetchFullAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ")");
+        console.log("INFO: fetchFullAlbums for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ", " + parseArtist.get("iTunesId") + ")");
         promises.push(
         // fetch full album details (I need the release date in the CollectionView for sorting)
         iTunes.fetchAllAlbumsForArtist(parseArtist).then(function(parseArtist) {
