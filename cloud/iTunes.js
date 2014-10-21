@@ -28,9 +28,9 @@ var _ = require("underscore"),
   // if not existent, create it. Update it with passed values
   // set artistId on the album
   // returns a promise with then(parseAlbum), error(parseAlbum, error)
-  function createOrUpdateAlbum(data, parseArtist) {
+  function createOrUpdateAlbum(album, parseArtist) {
     var query = new Parse.Query("Album");
-    query.equalTo("iTunesId", data.collectionId);
+    query.equalTo("iTunesId", album.collectionId);
 
     return query.first().then(function(parseAlbum) {
       var thisAlbum;
@@ -39,10 +39,10 @@ var _ = require("underscore"),
         thisAlbum = parseAlbum;
       } else {
         // create one
-        thisAlbum = createAlbum(data, parseArtist);
+        thisAlbum = createAlbum(album, parseArtist);
       }
 
-      if (updateAlbumValues(data, thisAlbum, parseArtist)) {
+      if (updateAlbumValues(album, thisAlbum, parseArtist)) {
         return thisAlbum.save();
       }
       return Parse.Promise.as(thisAlbum);
@@ -50,25 +50,25 @@ var _ = require("underscore"),
   }
 
   // returns unsaved new parseAlbum
-  function createAlbum(data) {
+  function createAlbum(album) {
     var Album = Parse.Object.extend("Album"),
       parseAlbum = new Album();
-    parseAlbum.set("iTunesId", data.collectionId);
+    parseAlbum.set("iTunesId", album.collectionId);
     return parseAlbum;
   }
 
   // true if values have been updated
   // does NOT save the parseAlbum
-  function updateAlbumValues(data, parseAlbum, parseArtist) {
+  function updateAlbumValues(album, parseAlbum, parseArtist) {
     // INFO: ALBUM VALUE UPDATES
     parseAlbum.set("artistId", parseArtist.id);
-    parseAlbum.set("iTunesUrl", data.collectionViewUrl);
-    parseAlbum.set("name", data.collectionName);
-    parseAlbum.set("explicitness", data.explicitness);
-    parseAlbum.set("trackCount", data.trackCount);
-    parseAlbum.set("iTunesGenreName", data.primaryGenreName);
-    parseAlbum.set("releaseDate", new Date(data.releaseDate));
-    setImagesFromRecordOnParseObject(data, parseAlbum);
+    parseAlbum.set("iTunesUrl", album.collectionViewUrl);
+    parseAlbum.set("name", album.collectionName);
+    parseAlbum.set("explicitness", album.explicitness);
+    parseAlbum.set("trackCount", album.trackCount);
+    parseAlbum.set("iTunesGenreName", album.primaryGenreName);
+    parseAlbum.set("releaseDate", new Date(album.releaseDate));
+    setImagesFromRecordOnParseObject(album, parseAlbum);
     return true;
   }
 
@@ -162,14 +162,14 @@ var _ = require("underscore"),
   }
 
   // sets the image urls on the passed parseObj
-  function setImagesFromRecordOnParseObject(data, parseObj) {
+  function setImagesFromRecordOnParseObject(album, parseObj) {
     var imgs = []; // big to small
-    var url100 = data.artworkUrl100;
+    var url100 = album.artworkUrl100;
 
     _.each(artworkRes, function(res) {
-      if (data["artworkUrl" + res]) {
+      if (album["artworkUrl" + res]) {
         // first lets probe for higher res images in the record
-        imgs.push(data["artworkUrl" + res]);
+        imgs.push(album["artworkUrl" + res]);
       } else if (url100) {
         // url100 serves as a basis for trying other resolutions
         imgs.push(replaceResolutionInUrl(url100, res));
@@ -179,8 +179,8 @@ var _ = require("underscore"),
     if (url100) {
       imgs.push(url100);
     }
-    if (data.artworkUrl60) {
-      imgs.push(data.artworkUrl60);
+    if (album.artworkUrl60) {
+      imgs.push(album.artworkUrl60);
     }
 
     parseObj.set("images", imgs);
@@ -281,15 +281,15 @@ var _ = require("underscore"),
     // fetches the latest album and creates it if new, else returns existing newest
     // returns a promise with then(parseArtist, newestParseAlbum, isNew), error(httpResponse)
     findNewestAlbum: function(parseArtist) {
-      var data;
+      var album;
       return getAlbumsForArtist(parseArtist.get("iTunesId"), {
         limit: 13
-      }).then(function(results) {
-        data = _.first(results);
-        if ( !! data) {
+      }).then(function(albums, albumsCount) {
+        album = _.first(albums);
+        if ( !! album) {
           // Go check if it exists
           var query = new Parse.Query("Album");
-          query.equalTo("iTunesId", data.collectionId);
+          query.equalTo("iTunesId", album.collectionId);
           return query.first();
         }
         return Parse.Promise.error(results);
@@ -299,7 +299,7 @@ var _ = require("underscore"),
           // Found existing Album
           return Parse.Promise.as(parseArtist, parseAlbum, false);
         }
-        var newParseAlbum = createAlbum(data, parseArtist);
+        var newParseAlbum = createAlbum(album, parseArtist);
 
         // New album found
         parseArtist.set("totalAlbums", parseArtist.get("totalAlbums") + 1);
