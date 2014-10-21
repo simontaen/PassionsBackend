@@ -131,8 +131,8 @@ var _ = require("underscore");
       url: myUrl,
       params: params
     }).fail(function(httpResponse) {
-      console.error((caller || myUrl) + " failed");
-      console.error(httpResponse.text);
+      console.log((caller || myUrl) + " failed");
+      console.log(httpResponse.text);
     });
   }
 

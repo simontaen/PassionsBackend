@@ -122,8 +122,8 @@ var _ = require("underscore"),
       httpResponse.data = JSON.parse(httpResponse.text);
       return Parse.Promise.as(httpResponse);
     }).fail(function(httpResponse) {
-      console.error((caller || myUrl) + " failed");
-      console.error(httpResponse.text);
+      console.log((caller || myUrl) + " failed");
+      console.log(httpResponse.text);
     });
   }
 

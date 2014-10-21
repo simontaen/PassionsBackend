@@ -18,8 +18,8 @@
       url: apiUrl,
       params: params,
     }).fail(function(httpResponse) {
-      console.error((caller || params.method) + " failed");
-      console.error(httpResponse.text);
+      console.log((caller || params.method) + " failed");
+      console.log(httpResponse.text);
     });
   }
 
