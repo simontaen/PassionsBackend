@@ -210,6 +210,20 @@ var _ = require("underscore"),
     return true;
   }
 
+  // update the Artist
+  function updateArtistWithData(parseArtist, artistData) {
+    if (artistData) {
+      // INFO: ARTIST VALUE UPDATES
+      parseArtist.set("iTunesId", artistData.artistId);
+      parseArtist.set("iTunesUrl", artistData.artistLinkUrl);
+      parseArtist.set("amgId", artistData.amgArtistId);
+      parseArtist.set("iTunesGenreName", artistData.primaryGenreName);
+      parseArtist.set("iTunesGenreId", artistData.primaryGenreId);
+      parseArtist.set("iTunesRadioUrl", artistData.radioStationUrl);
+      // no images delivered for Artist
+    }
+  }
+
   module.exports = {
 
     /* As a rule I never save the artist here -> caller!
@@ -249,17 +263,7 @@ var _ = require("underscore"),
           artistData = _.first(httpResponse.data.results);
         }
 
-        if (artistData) {
-          // INFO: ARTIST VALUE UPDATES
-          parseArtist.set("iTunesId", artistData.artistId);
-          parseArtist.set("iTunesUrl", artistData.artistLinkUrl);
-          parseArtist.set("amgId", artistData.amgArtistId);
-          parseArtist.set("iTunesGenreName", artistData.primaryGenreName);
-          parseArtist.set("iTunesGenreId", artistData.primaryGenreId);
-          parseArtist.set("iTunesRadioUrl", artistData.radioStationUrl);
-          // no images delivered for Artist
-        }
-
+        updateArtistWithData(parseArtist, artistData);
         return Parse.Promise.as(parseArtist, exactMatchesCount == 1);
       });
     },
