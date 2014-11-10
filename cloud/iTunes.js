@@ -71,6 +71,7 @@ var _ = require("underscore"),
   function updateAlbumValues(album, parseAlbum, parseArtist) {
     // INFO: ALBUM VALUE UPDATES
     parseAlbum.set("artistId", parseArtist.id);
+    parseAlbum.set("artistName", parseArtist.get("name"));
     parseAlbum.set("iTunesUrl", album.collectionViewUrl);
     parseAlbum.set("name", album.collectionName);
     parseAlbum.set("explicitness", album.explicitness);
