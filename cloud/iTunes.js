@@ -215,6 +215,7 @@ var _ = require("underscore"),
     if (artistData) {
       // INFO: ARTIST VALUE UPDATES
       parseArtist.set("iTunesId", artistData.artistId);
+      parseArtist.set("name", artistData.artistName);
       parseArtist.set("iTunesUrl", artistData.artistLinkUrl);
       parseArtist.set("amgId", artistData.amgArtistId);
       parseArtist.set("iTunesGenreName", artistData.primaryGenreName);
@@ -268,6 +269,22 @@ var _ = require("underscore"),
       });
     },
 
+    // Grab the iTunes Artist by Id, update its values
+    // returns a promise with then(parseArtist), error(httpResponse)
+    updateArtist: function(parseArtist) {
+      var endpoint = "lookup",
+        params = {
+          id: parseArtist.get("iTunesId")
+        };
+    
+      // http://itunes.apple.com/lookup?id=1092859
+      return wrappedHttpRequest(apiUrl + endpoint, params, "iTunes.updateArtist").then(function(httpResponse) {
+        var artistData = _.first(httpResponse.data.results);
+        updateArtistWithData(parseArtist, artistData);
+        return Parse.Promise.as(parseArtist);
+      });
+    },
+    
     // query for ALL albums of the artist
     // returns a promise with
     // then(parseArtist), error(httpResponse) or error(parseAlbum, error)

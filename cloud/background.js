@@ -316,4 +316,34 @@ module.exports = function( /* config */ ) {
 
   });
 
+  Parse.Cloud.job("updateArtist", function(req, status) {
+    // https://parse.com/docs/cloud_code_guide#jobs
+    var query = new Parse.Query("Artist");
+    // Data provider id must exists
+    query.exists("iTunesId");
+  
+    query.find().then(function(results) {
+      var promises = [];
+      status.message("Processing " + _.size(results) + " Artists");
+      console.log("INFO: updateArtist for " + _.size(results) + " Artists");
+  
+      _.each(results, function(parseArtist) {
+        console.log("INFO: updateArtist for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ", " + parseArtist.get("iTunesId") + ")");
+        promises.push(iTunes.updateArtist(parseArtist).then(function(parseArtist) {
+          return parseArtist.save();
+        }));
+      });
+      return Parse.Promise.when(promises);
+  
+    }).then(function() {
+      // all artists are processed
+      console.log("INFO: updateArtist completed successfully");
+      status.success("Success");
+  
+    }, function(errorOrObject, errorOrUndefined) {
+      errorHandler("updateArtist", status, errorOrObject, errorOrUndefined);
+  
+    });
+  });
+  
 };
