@@ -341,6 +341,7 @@ var _ = require("underscore"),
           return query.first().then(function(parseAlbum) {
             if (parseAlbum) {
               // Found existing Album
+              //console.log("INFO: Found existing Album " + parseAlbum.get("name") + " for Artist " + parseArtist.get("name") + " (" + parseArtist.id + ", " + parseArtist.get("iTunesId") + ")");
               return Parse.Promise.as(parseArtist, parseAlbum, false);
             }
             var newParseAlbum = createAlbum(album, parseArtist);
