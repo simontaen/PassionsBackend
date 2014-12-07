@@ -5,7 +5,7 @@ var _ = require("underscore"),
   spotify = require('cloud/spotify.js'),
   // we've seen (http://bendodson.com/code/itunes-artwork-finder/index.html)
   // that a few other resolutions are valid, try these
-  artworkRes = ["600", "400", "200"];
+  artworkRes = ["1200", "600", "400"];
 
 (function() {
 
@@ -194,20 +194,39 @@ var _ = require("underscore"),
     _.each(artworkRes, function(res) {
       if (album["artworkUrl" + res]) {
         // first lets probe for higher res images in the record
-        imgs.push(album["artworkUrl" + res]);
+        imgs.push({
+          'height': res,
+          'width': res,
+          'url': album["artworkUrl" + res]
+        });
       } else if (url100) {
         // url100 serves as a basis for trying other resolutions
-        imgs.push(replaceResolutionInUrl(url100, res));
+        imgs.push({
+          'height': res,
+          'width': res,
+          'url': replaceResolutionInUrl(url100, res)
+        });
       }
     });
 
     if (url100) {
-      imgs.push(url100);
+      imgs.push({
+        'height': '100',
+        'width': '100',
+        'url': url100
+      });
     }
     if (album.artworkUrl60) {
-      imgs.push(album.artworkUrl60);
+      imgs.push({
+        'height': '60',
+        'width': '60',
+        'url': album.artworkUrl60
+      });
     }
 
+    _.sortBy(imgs, function(image) {
+      return image.width;
+    });
     parseObj.set("images", imgs);
     return true;
   }

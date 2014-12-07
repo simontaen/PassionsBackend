@@ -147,14 +147,16 @@ var _ = require("underscore");
 
   // sets the image urls on the passed parseObj
   function setImagesFromRecordOnParseObject(rec, parseObj) {
-    var imgs = []; // big to small
+    var imgs; // big to small
     if (rec.images) {
-      _.each(rec.images, function(image) {
-        imgs.push(image.url || "");
+      imgs = rec.images;
+      _.sortBy(imgs, function(image) {
+        return image.width;
       });
       parseObj.set("images", imgs);
       return true;
     }
+    return false;
   }
 
   module.exports = {
