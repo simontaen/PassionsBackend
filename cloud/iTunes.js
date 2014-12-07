@@ -221,7 +221,6 @@ var _ = require("underscore"),
       parseArtist.set("iTunesUrlMap", {
         "US": artistData.artistLinkUrl
       });
-      parseArtist.set("iTunesUrl", artistData.artistLinkUrl);
       parseArtist.set("amgId", artistData.amgArtistId);
       parseArtist.set("iTunesGenreName", artistData.primaryGenreName);
       parseArtist.set("iTunesGenreId", artistData.primaryGenreId);
